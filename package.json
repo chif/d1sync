@@ -42,10 +42,6 @@
     "{*.json,.{babelrc,eslintrc,prettierrc,stylelintrc}}": [
       "prettier --ignore-path .eslintignore --parser json --write"
     ],
-    "*.{css,scss}": [
-      "stylelint --ignore-path .eslintignore --syntax scss --fix",
-      "prettier --ignore-path .eslintignore --single-quote --write"
-    ],
     "*.{html,md,yml}": [
       "prettier --ignore-path .eslintignore --single-quote --write"
     ]
@@ -272,6 +268,9 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.12.0",
+    "@fortawesome/fontawesome-svg-core": "^1.2.27",
+    "@fortawesome/free-solid-svg-icons": "^5.12.1",
+    "@fortawesome/react-fontawesome": "^0.1.8",
     "@hot-loader/react-dom": "^16.11.0",
     "connected-react-router": "^6.6.1",
     "core-js": "^3.6.4",
@@ -281,6 +280,7 @@
     "electron-updater": "^4.2.0",
     "history": "^4.10.1",
     "react": "^16.12.0",
+    "react-bootstrap": "^1.0.0-beta.16",
     "react-dom": "^16.12.0",
     "react-hot-loader": "^4.12.19",
     "react-redux": "^7.1.3",
@@ -288,7 +288,8 @@
     "react-router-dom": "^5.1.2",
     "redux": "^4.0.5",
     "redux-thunk": "^2.3.0",
-    "source-map-support": "^0.5.16"
+    "source-map-support": "^0.5.16",
+    "typeface-roboto": "^0.0.75"
   },
   "devEngines": {
     "node": ">=7.x",

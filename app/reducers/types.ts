@@ -1,10 +1,11 @@
 import { Dispatch as ReduxDispatch, Store as ReduxStore, Action } from 'redux';
+import { DPlaytestsProvider } from './playtestTypes';
 
-export type counterStateType = {
-  counter: number;
+export type D1RootState = {
+  playtestsProvider: DPlaytestsProvider;
 };
 
-export type GetState = () => counterStateType;
+export type GetState = () => D1RootState;
 
 export type Dispatch = ReduxDispatch<Action<string>>;
 
