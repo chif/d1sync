@@ -1,4 +1,4 @@
-import { Dispatch as ReduxDispatch, Store as ReduxStore, Action } from 'redux';
+import { Action } from 'redux';
 
 export type PlaytestState = {
   branchName: string;
@@ -8,14 +8,13 @@ export type PlaytestState = {
   playtestDesc: string;
 };
 
+export type DPlaytestsProviderState = {
+  bIsLoading: boolean;
+};
+
 export type DPlaytestsProvider = {
   playtests: Array<PlaytestState> = [];
+  providerState: DPlaytestsProviderState;
 };
 
 export type D1Action = Action<string>;
-
-export type GetState = () => D1SyncState;
-
-export type Dispatch = ReduxDispatch<D1Action>;
-
-export type Store = ReduxStore<D1SyncState, D1Action>;

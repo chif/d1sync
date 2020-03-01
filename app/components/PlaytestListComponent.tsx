@@ -1,24 +1,44 @@
 // @flow
-import React from 'react';
-import { ListGroup } from 'react-bootstrap';
+import React, { useEffect } from 'react';
+import { ListGroup, Spinner } from 'react-bootstrap';
 import { useSelector, useDispatch } from 'react-redux';
 import PlaytestBuildComponent from './PlaytestBuildComponent';
 import { D1RootState } from '../reducers/types';
-import { DPlaytestsProvider, D1Action } from '../reducers/playtestTypes';
-import { PLAYTEST_TEST } from '../actions/playtestActions';
+import {
+  D1Action,
+  PlaytestState,
+  DPlaytestsProviderState
+} from '../reducers/playtestTypes';
+import { PLAYTEST_TEST, toggleListState } from '../actions/playtestActions';
 
 export default function PlaytestListComponent() {
-  const playtestProvider: DPlaytestsProvider = useSelector(
-    (state: D1RootState) => state.playtestsProvider
+  const playtests: Array<PlaytestState> = useSelector(
+    (state: D1RootState) => state.playtestsProvider.playtests
+  );
+
+  const providerState: DPlaytestsProviderState = useSelector(
+    (state: D1RootState) => state.playtestsProvider.providerState
   );
 
   const dispatch = useDispatch<D1Action>();
 
-  setTimeout(() => {
-    dispatch({ type: PLAYTEST_TEST });
-  }, 5000);
+  useEffect(() => {
+    dispatch(toggleListState(1500));
 
-  const { length } = playtestProvider.playtests;
+    const timerHandle = setTimeout(() => {
+      dispatch({ type: PLAYTEST_TEST });
+    }, 2000);
+    return () => {
+      clearTimeout(timerHandle);
+    };
+  }, [playtests]);
+
+  const { length } = playtests;
+
+  if (providerState.bIsLoading) {
+    return <Spinner animation="border" />;
+  }
+
   return (
     <ListGroup>
       <ListGroup.Item>

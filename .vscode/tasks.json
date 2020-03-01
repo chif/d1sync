@@ -17,6 +17,19 @@
       "type": "npm",
       "script": "lint",
       "problemMatcher": ["$eslint-compact"]
+    },
+    {
+      "type": "npm",
+      "script": "electron-rebuild",
+      "problemMatcher": ["$eslint-compact"],
+      "group": "build"
+    },
+    {
+      "type": "npm",
+      "script": "electron-rebuild",
+      "path": "app/",
+      "problemMatcher": ["$eslint-compact"],
+      "group": "build"
     }
   ]
 }

@@ -9,4 +9,4 @@ export type GetState = () => D1RootState;
 
 export type Dispatch = ReduxDispatch<Action<string>>;
 
-export type Store = ReduxStore<counterStateType, Action<string>>;
+export type Store = ReduxStore<D1RootState, Action<string>>;
