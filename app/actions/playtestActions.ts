@@ -1,3 +1,4 @@
+import electron from 'electron';
 import fs from 'fs';
 import path from 'path';
 import * as sleep from 'await-sleep';
@@ -9,12 +10,29 @@ import {
   FTP_CONFIG_LOAD_FINISH,
   FTP_CONFIG_LOAD_START,
   PLAYTEST_SET_LIST,
-  PLAYTEST_LOAD_START
+  PLAYTEST_LOAD_START,
+  LOCAL_SETTINGS_UPDATE_LIBRARY_PATH
 } from '../reducers/actionTypes';
 
 export function reportError(message, error) {
   Console.log(message);
   Console.log(error);
+}
+
+export function selectLibraryPath() {
+  return async (dispatch: Dispatch) => {
+    const dialog = electron.dialog || electron.remote.dialog;
+    const dir = await dialog.showOpenDialog({
+      properties: ['openDirectory']
+    });
+
+    if (!dir.canceled) {
+      dispatch({
+        type: LOCAL_SETTINGS_UPDATE_LIBRARY_PATH,
+        payload: dir.filePaths[0]
+      });
+    }
+  };
 }
 
 export function loadFtpConfig() {

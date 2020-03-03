@@ -56,14 +56,18 @@ const createWindow = async () => {
 
   mainWindow = new BrowserWindow({
     show: false,
+    frame: false,
     width: 1024,
     height: 728,
+    backgroundColor: '#FFF',
     webPreferences:
       process.env.NODE_ENV === 'development' || process.env.E2E_BUILD === 'true'
         ? {
-            nodeIntegration: true
+            nodeIntegration: true,
+            titleBarStyle: 'hiddenInset'
           }
         : {
+            titleBarStyle: 'hiddenInset',
             preload: path.join(__dirname, 'dist/renderer.prod.js')
           }
   });

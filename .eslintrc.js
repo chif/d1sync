@@ -5,7 +5,8 @@ module.exports = {
     'import/no-extraneous-dependencies': 'off',
     // we are using typeScript, PropTypes is an unnecessary overhead
     'react/prop-types': 'off',
-    'no-plusplus':  [2, { allowForLoopAfterthoughts: true }]
+    'no-plusplus':  [2, { allowForLoopAfterthoughts: true }],
+    'no-param-reassign': [2, { "props": false }]
   },
   settings: {
     'import/resolver': {

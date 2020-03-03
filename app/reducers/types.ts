@@ -1,6 +1,10 @@
 import { Dispatch as ReduxDispatch, Store as ReduxStore, Action } from 'redux';
 import { DPlaytestsProvider } from './playtestTypes';
 
+export type LocalSettings = {
+  libraryPath: string;
+};
+
 export type FtpConfig = {
   url: string;
   path: string;
@@ -12,6 +16,7 @@ export type FtpConfig = {
 export type D1RootState = {
   playtestsProvider: DPlaytestsProvider;
   ftpConfig: FtpConfig;
+  localSettings: LocalSettings;
 };
 
 export type GetState = () => D1RootState;
