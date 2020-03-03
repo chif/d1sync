@@ -17,4 +17,6 @@ export type DPlaytestsProvider = {
   providerState: DPlaytestsProviderState;
 };
 
-export type D1Action = Action<string>;
+export type D1Action = Action<string> & {
+  payload: object;
+};

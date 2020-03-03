@@ -30,6 +30,16 @@
       "path": "app/",
       "problemMatcher": ["$eslint-compact"],
       "group": "build"
+    },
+    {
+      "type": "npm",
+      "script": "start",
+      "problemMatcher": ["$eslint-compact"]
+    },
+    {
+      "type": "npm",
+      "script": "package-win",
+      "problemMatcher": ["$eslint-compact"]
     }
   ]
 }

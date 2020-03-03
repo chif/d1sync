@@ -1,4 +1,6 @@
 import { createStore, applyMiddleware, compose } from 'redux';
+import createEngine from 'redux-storage-engine-electron-store';
+import * as storage from 'redux-storage';
 import thunk from 'redux-thunk';
 import { createHashHistory } from 'history';
 import { routerMiddleware, routerActions } from 'connected-react-router';
@@ -25,6 +27,14 @@ const history = createHashHistory();
 
 const rootReducer = createRootReducer(history);
 
+const reduxStorageEngine = createEngine({
+  store: {
+    name: 'config'
+  }
+});
+
+const reduxStorage = storage.createMiddleware(reduxStorageEngine);
+
 const configureStore = (initialState?: D1RootState) => {
   // Redux Configuration
   const middleware = [];
@@ -47,6 +57,9 @@ const configureStore = (initialState?: D1RootState) => {
   // Router Middleware
   const router = routerMiddleware(history);
   middleware.push(router);
+
+  // store middleware
+  middleware.push(reduxStorage);
 
   // Redux DevTools Configuration
   const actionCreators = {
@@ -81,4 +94,8 @@ const configureStore = (initialState?: D1RootState) => {
   return store;
 };
 
-export default { configureStore, history };
+export default {
+  configureStore,
+  history,
+  reduxStorageEngine
+};

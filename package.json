@@ -1,6 +1,6 @@
 {
-  "name": "electron-react-boilerplate",
-  "productName": "ElectronReact",
+  "name": "d1playtester",
+  "productName": "D1Playtester",
   "version": "1.0.0",
   "description": "Electron application boilerplate based on React, React Router, Webpack, React Hot Loader for rapid application development",
   "scripts": {
@@ -47,8 +47,8 @@
     ]
   },
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.develar.ElectronReact",
+    "productName": "d1playtester",
+    "appId": "com.allods.d1playtester",
     "files": [
       "dist/",
       "node_modules/",
@@ -267,26 +267,33 @@
     "yarn": "^1.21.1"
   },
   "dependencies": {
+    "@emotion/core": "^10.0.28",
     "@fortawesome/fontawesome-free": "^5.12.0",
     "@fortawesome/fontawesome-svg-core": "^1.2.27",
     "@fortawesome/free-solid-svg-icons": "^5.12.1",
     "@fortawesome/react-fontawesome": "^0.1.8",
     "@hot-loader/react-dom": "^16.11.0",
+    "await-sleep": "^0.0.1",
+    "basic-ftp": "^4.5.3",
     "connected-react-router": "^6.6.1",
     "core-js": "^3.6.4",
     "devtron": "^1.4.0",
     "electron-debug": "^3.0.1",
     "electron-log": "^4.0.3",
+    "electron-store": "^5.1.1",
     "electron-updater": "^4.2.0",
     "history": "^4.10.1",
     "react": "^16.12.0",
     "react-bootstrap": "^1.0.0-beta.16",
+    "react-content-loader": "^5.0.2",
     "react-dom": "^16.12.0",
     "react-hot-loader": "^4.12.19",
     "react-redux": "^7.1.3",
     "react-router": "^5.1.2",
     "react-router-dom": "^5.1.2",
     "redux": "^4.0.5",
+    "redux-storage": "^4.1.2",
+    "redux-storage-engine-electron-store": "^4.0.1",
     "redux-thunk": "^2.3.0",
     "source-map-support": "^0.5.16",
     "typeface-roboto": "^0.0.75"

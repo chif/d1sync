@@ -1,8 +1,17 @@
 import { Dispatch as ReduxDispatch, Store as ReduxStore, Action } from 'redux';
 import { DPlaytestsProvider } from './playtestTypes';
 
+export type FtpConfig = {
+  url: string;
+  path: string;
+  name: string;
+  pwd: string;
+  bIsLoading: boolean;
+};
+
 export type D1RootState = {
   playtestsProvider: DPlaytestsProvider;
+  ftpConfig: FtpConfig;
 };
 
 export type GetState = () => D1RootState;
