@@ -1,16 +1,18 @@
 // @flow
-import React from 'react';
-import { Badge, Button, Card } from 'react-bootstrap';
+import React, { useCallback } from 'react';
+import { Badge, Button, Card, ProgressBar } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import ContentLoader from 'react-content-loader';
+import { useSelector, useDispatch } from 'react-redux';
+import { createSelector } from 'reselect';
+import { D1RootState } from '../reducers/types';
+import { PlaytestBaseState, ELocalState } from '../reducers/playtestTypes';
+import { downloadPlaytestBuild } from '../actions/playtestActions';
 
 type Props = {
   branchName: string;
   buildName: string;
-  bIsImportant: boolean;
-  playtestTitle: string;
-  playtestDesc: string;
   bPlaceholder: boolean;
 };
 
@@ -47,6 +49,7 @@ const cardLoader = (linesCount = 1) => {
   const viewBox = `0 0 ${maxWidth} ${height}`;
   return (
     <ContentLoader
+      key={height}
       speed={1}
       width={maxWidth}
       height={height}
@@ -59,19 +62,44 @@ const cardLoader = (linesCount = 1) => {
   );
 };
 
+const selectMyRemoteEntry = createSelector(
+  (inEntry: PlaytestBaseState = {}) => inEntry,
+  (rootState: D1RootState = {}) => rootState.playtestsProvider.playtests,
+  (rootState: D1RootState = {}) => rootState.playtestsProvider.localState,
+  (baseEntry, remoteStates, localStates) => ({
+    remoteState: remoteStates.find(
+      remoteEntry =>
+        remoteEntry.buildName === baseEntry.buildName &&
+        remoteEntry.branchName === baseEntry.branchName
+    ),
+    localState: localStates.find(
+      localEntry =>
+        localEntry.branchName === baseEntry.branchName &&
+        localEntry.buildName === baseEntry.buildName
+    )
+  })
+);
+
 const BuildComponent: React.FC<Props> = props => {
-  const {
-    branchName,
-    buildName,
-    bIsImportant,
-    playtestTitle,
-    playtestDesc,
-    bPlaceholder
-  } = props;
+  const { branchName, buildName, bPlaceholder } = props;
+
+  const { remoteState, localState } = useSelector((state: D1RootState) =>
+    selectMyRemoteEntry({ ...state, branchName, buildName })
+  );
+
+  const { bIsImportant, playtestTitle, playtestDesc } = remoteState || {};
+  const localStateValue = localState ? localState.state : ELocalState.Offline;
+
+  const dispatch = useDispatch<D1Action>();
+
+  const downloadCallback = useCallback(() => {
+    dispatch(downloadPlaytestBuild(remoteState));
+  });
 
   const border: string =
     !bPlaceholder && bIsImportant ? 'warning' : 'secondary';
-  const branchBadge: string = branchName === 'Master' ? 'info' : 'light';
+  const branchBadge: string =
+    branchName.toLocaleLowerCase() === 'master' ? 'info' : 'light';
 
   const getBadges = () => {
     if (!bPlaceholder && bIsImportant) {
@@ -90,16 +118,30 @@ const BuildComponent: React.FC<Props> = props => {
       return <></>;
     }
 
-    return (
-      <div>
-        <Button className="mr-3" variant="primary">
-          Start
-        </Button>
-        <Button variant="secondary">
-          <FontAwesomeIcon icon={faTrash} />
-        </Button>
-      </div>
-    );
+    switch (localStateValue) {
+      case ELocalState.Offline:
+        return (
+          <Button className="mr-3" variant="primary" onClick={downloadCallback}>
+            Download
+          </Button>
+        );
+      case ELocalState.Ready:
+        return (
+          <div>
+            <Button className="mr-3" variant="success">
+              Start
+            </Button>
+            <Button variant="secondary">
+              <FontAwesomeIcon icon={faTrash} />
+            </Button>
+          </div>
+        );
+      case ELocalState.Downloading:
+        return <ProgressBar animated now={100} />;
+      case ELocalState.PendingState:
+      default:
+        return <></>;
+    }
   };
 
   const getHeader = () => {

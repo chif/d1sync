@@ -40,6 +40,12 @@
       "type": "npm",
       "script": "package-win",
       "problemMatcher": ["$eslint-compact"]
+    },
+    {
+      "type": "npm",
+      "script": "build-dll",
+      "problemMatcher": ["$eslint-compact"],
+      "group": "build"
     }
   ]
 }

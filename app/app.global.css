@@ -3,6 +3,7 @@
  *        See https://github.com/webpack-contrib/sass-loader#imports
  */
 @import '~@fortawesome/fontawesome-free/css/all.css';
+@import '~@fortawesome/fontawesome-svg-core/styles.css';
 @import 'themes/darkly.min.css';
 /*@import 'themes/cyborg.min.css';*/
 /*@import 'themes/flatly.min.css';*/

@@ -6,13 +6,16 @@ import PlaytestBuildComponent from './PlaytestBuildComponent';
 import { D1RootState } from '../reducers/types';
 import {
   D1Action,
-  PlaytestState,
+  PlaytestRemoteState,
   DPlaytestsProviderState
 } from '../reducers/playtestTypes';
-import { loadPlaytestsFromFtp } from '../actions/playtestActions';
+import {
+  fetchPlaytestsRemoteStateFromFtp,
+  fetchPlaytestsLocalBranches
+} from '../actions/playtestActions';
 
 export default function PlaytestListComponent() {
-  const playtests: Array<PlaytestState> = useSelector(
+  const playtests: Array<PlaytestRemoteState> = useSelector(
     (state: D1RootState) => state.playtestsProvider.playtests
   );
 
@@ -26,7 +29,8 @@ export default function PlaytestListComponent() {
 
   useEffect(() => {
     if (!ftpConfig.bIsLoading) {
-      dispatch(loadPlaytestsFromFtp());
+      dispatch(fetchPlaytestsRemoteStateFromFtp());
+      dispatch(fetchPlaytestsLocalBranches());
     }
   }, [ftpConfig]);
 
@@ -36,35 +40,31 @@ export default function PlaytestListComponent() {
         <>
           <PlaytestBuildComponent
             bPlaceholder="true"
-            bIsImportant="true"
             branchName=".."
             buildName=".."
-            playtestTitle=".."
-            playtestDesc=".."
           />
           <PlaytestBuildComponent
             bPlaceholder="true"
-            bIsImportant="true"
             branchName=".."
             buildName=".."
-            playtestTitle=".."
-            playtestDesc=".."
           />
         </>
       );
     }
 
-    return playtests.map((playtestState: PlaytestState) => (
-      <PlaytestBuildComponent
-        key={providerState.buildName}
-        bPlaceholder={providerState.bIsLoading}
-        bIsImportant={playtestState.bIsImportant}
-        branchName={playtestState.branchName}
-        buildName={playtestState.buildName}
-        playtestTitle={playtestState.playtestTitle}
-        playtestDesc={playtestState.playtestDesc}
-      />
-    ));
+    return playtests
+      .sort(
+        (a: PlaytestRemoteState, b: PlaytestRemoteState) =>
+          -(parseInt(a.buildName, 10) - parseInt(b.buildName, 10))
+      )
+      .map((playtestState: PlaytestRemoteState) => (
+        <PlaytestBuildComponent
+          key={providerState.buildName}
+          bPlaceholder={providerState.bIsLoading}
+          branchName={playtestState.branchName}
+          buildName={playtestState.buildName}
+        />
+      ));
   };
 
   const getPlaytestComponents = () => {

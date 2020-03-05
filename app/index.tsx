@@ -11,6 +11,7 @@ import {
   history,
   reduxStorageEngine
 } from './store/configureStore';
+import '@fortawesome/fontawesome-free/js/all';
 import './app.global.css';
 
 const rgb2hex = c =>
@@ -18,15 +19,6 @@ const rgb2hex = c =>
     .match(/\d+/g)
     .map(x => (+x).toString(16).padStart(2, 0))
     .join('')}`;
-
-const bgColor = window
-  .getComputedStyle(document.body, null)
-  .getPropertyValue('background-color');
-
-/* eslint no-new: "off" */
-new Titlebar({
-  backgroundColor: Color.fromHex(rgb2hex(bgColor))
-});
 
 library.add(fas, faTrash);
 
@@ -36,11 +28,20 @@ storageLoader(store);
 
 const AppContainer = process.env.PLAIN_HMR ? Fragment : ReactHotAppContainer;
 
-document.addEventListener('DOMContentLoaded', () =>
-  render(
+document.addEventListener('DOMContentLoaded', () => {
+  const bgColor = window
+    .getComputedStyle(document.body, null)
+    .getPropertyValue('background-color');
+
+  /* eslint no-new: "off" */
+  new Titlebar({
+    backgroundColor: Color.fromHex(rgb2hex(bgColor))
+  });
+
+  return render(
     <AppContainer>
       <Root store={store} history={history} />
     </AppContainer>,
     document.getElementById('root')
-  )
-);
+  );
+});
