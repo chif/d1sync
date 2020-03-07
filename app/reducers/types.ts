@@ -17,6 +17,7 @@ export type D1RootState = {
   playtestsProvider: DPlaytestsProvider;
   ftpConfig: FtpConfig;
   localSettings: LocalSettings;
+  randomSeed: number;
 };
 
 export type GetState = () => D1RootState;

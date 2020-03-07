@@ -1,24 +1,15 @@
 import React, { useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import {
-  Spinner,
-  Row,
-  Col,
-  Button,
-  InputGroup,
-  FormControl
-} from 'react-bootstrap';
+import { faFolderOpen } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Spinner, Row, Col, Button, InputGroup, FormControl } from 'react-bootstrap';
 import { loadFtpConfig, selectLibraryPath } from '../actions/playtestActions';
 import { D1RootState, FtpConfig, LocalSettings } from '../reducers/types';
 
 export default function UserConfigComponent() {
-  const ftpConfig: FtpConfig = useSelector(
-    (state: D1RootState) => state.ftpConfig
-  );
+  const ftpConfig: FtpConfig = useSelector((state: D1RootState) => state.ftpConfig);
 
-  const localSettings: LocalSettings = useSelector(
-    (state: D1RootState) => state.localSettings
-  );
+  const localSettings: LocalSettings = useSelector((state: D1RootState) => state.localSettings);
 
   const dispatch = useDispatch<D1Action>();
 
@@ -39,7 +30,9 @@ export default function UserConfigComponent() {
         <Col>
           <InputGroup size="lg">
             <InputGroup.Prepend>
-              <InputGroup.Text id="basic-addon1">Library path:</InputGroup.Text>
+              <InputGroup.Text id="basic-addon1">
+                <FontAwesomeIcon className="mr-1" icon={faFolderOpen} />
+              </InputGroup.Text>
             </InputGroup.Prepend>
             <FormControl
               aria-label="Large"

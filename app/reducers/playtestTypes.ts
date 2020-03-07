@@ -6,21 +6,13 @@ export type PlaytestBaseState = {
   buildName: string;
 };
 
-export function findStateInArray(
-  inArray: Array<PlaytestBaseState>,
-  inStateToFind: PlaytestBaseState
-) {
+export function findStateInArray(inArray: Array<PlaytestBaseState>, inStateToFind: PlaytestBaseState) {
   return inArray.find(
-    element =>
-      element.branchName === inStateToFind.branchName &&
-      element.buildName === inStateToFind.buildName
+    element => element.branchName === inStateToFind.branchName && element.buildName === inStateToFind.buildName
   );
 }
 
-export function findOrAddStateInArray(
-  inArray: Array<PlaytestBaseState>,
-  inStateToFind: PlaytestBaseState
-) {
+export function findOrAddStateInArray(inArray: Array<PlaytestBaseState>, inStateToFind: PlaytestBaseState) {
   const foundState = findStateInArray(inArray, inStateToFind);
   if (isUndefined(foundState)) {
     const newState = {
@@ -39,6 +31,8 @@ export type PlaytestRemoteState = PlaytestBaseState & {
   bIsImportant: boolean;
   playtestTitle: string;
   playtestDesc: string;
+  bPendingUpdate: boolean;
+  bExtenedInfoSet: boolean;
 };
 
 export enum ELocalState {
@@ -52,6 +46,13 @@ export type PlaytestLocalState = PlaytestBaseState & {
   state: ELocalState;
 };
 
+export type PlaytestDownloadState = PlaytestBaseState & {
+  downloadedBytes: number;
+  totalBytes: number;
+  avgSpeed: number;
+  lastReportAt: number;
+};
+
 export type DPlaytestsProviderState = {
   bIsLoading: boolean;
 };
@@ -59,7 +60,9 @@ export type DPlaytestsProviderState = {
 export type DPlaytestsProvider = {
   playtests: Array<PlaytestRemoteState>;
   localState: Array<PlaytestLocalState>;
+  downloadState: Array<PlaytestDownloadState>;
   providerState: DPlaytestsProviderState;
+  selectedEntry: PlaytestBaseState;
 };
 
 export type D1Action = Action<string> & {

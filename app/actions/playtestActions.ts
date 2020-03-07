@@ -2,6 +2,8 @@ import electron from 'electron';
 import fs, { Dirent } from 'fs';
 import path from 'path';
 import { Client as FtpClient, FileInfo } from 'basic-ftp';
+import { ProgressInfo } from 'basic-ftp/dist/ProgressTracker';
+import sleep from 'await-sleep';
 import { Dispatch, GetState } from '../reducers/types';
 import {
   PLAYTEST_TEST,
@@ -12,13 +14,39 @@ import {
   PLAYTEST_REMOTE_STATE_LOAD_START,
   LOCAL_SETTINGS_UPDATE_LIBRARY_PATH,
   PLAYTEST_LOCAL_STATE_LOAD_START,
-  PLAYTEST_LOCAL_STATE_SET_LIST_START
+  PLAYTEST_LOCAL_STATE_SET_LIST_START,
+  PLAYTEST_REMOTE_ENTRY_LOAD,
+  PLAYTEST_REMOTE_ENTRY_SET,
+  RANDOM_SEED_SET,
+  PLAYTEST_DOWNLOAD_STATE_SET,
+  PLAYTEST_SELECTED_ENTRY_SET
 } from '../reducers/actionTypes';
-import { ELocalState, PlaytestBaseState } from '../reducers/playtestTypes';
+import { ELocalState, PlaytestBaseState, PlaytestRemoteState, PlaytestDownloadState } from '../reducers/playtestTypes';
 
-export function reportError(message, error) {
-  Console.log(message);
-  Console.log(error);
+const DO_NOT_GC_ME_PLEASE = [];
+let staticFtpInstances = 0;
+
+export function reportError() {}
+
+export function setRandomSeed(inSeed: number) {
+  return {
+    type: RANDOM_SEED_SET,
+    payload: inSeed
+  };
+}
+
+export function setSelectedEntry(entry: PlaytestBaseState) {
+  return {
+    type: PLAYTEST_SELECTED_ENTRY_SET,
+    payload: entry
+  };
+}
+
+export function setDownloadState(state: PlaytestDownloadState) {
+  return {
+    type: PLAYTEST_DOWNLOAD_STATE_SET,
+    payload: state
+  };
 }
 
 export function selectLibraryPath() {
@@ -40,8 +68,7 @@ export function selectLibraryPath() {
 export function loadFtpConfig() {
   return async (dispatch: Dispatch) => {
     dispatch({ type: FTP_CONFIG_LOAD_START });
-    const configPath =
-      '\\\\m1fsg5.mail.msk\\Games2$\\AT\\F1\\D1\\playtester.json';
+    const configPath = '\\\\m1fsg5.mail.msk\\Games2$\\AT\\F1\\D1\\playtester.json';
 
     try {
       const data = await fs.promises.readFile(configPath, {
@@ -59,6 +86,50 @@ export function loadFtpConfig() {
 
 export function downloadPlaytestBuild(build: PlaytestBaseState) {
   return async (dispatch: Dispatch, getState: GetState) => {
+    const fetchTrueRemoteSize = async (ftpClient: FtpClient) => {
+      const { ftpConfig } = getState();
+      const { buildName, branchName } = build;
+
+      const directories: Array<string> = [];
+      const fetchDirSize = async (remotePath: string) => {
+        const list = await ftpClient.list(remotePath);
+        let totalSize = 0;
+        list.forEach(entry => {
+          if (entry.isDirectory) {
+            directories.push(`${remotePath}/${entry.name}`);
+          } else {
+            totalSize += entry.size;
+          }
+
+          return entry;
+        });
+
+        return totalSize;
+      };
+
+      let totalSize = 0;
+      let dispatchThreshold = 0;
+      directories.push(`${ftpConfig.path}/${buildName}`);
+
+      while (directories.length > 0) {
+        totalSize += await fetchDirSize(directories.pop());
+        if (totalSize > dispatchThreshold) {
+          dispatchThreshold = totalSize + 1024 * 1024 * 100;
+
+          dispatch(
+            setDownloadState({
+              branchName,
+              buildName,
+              totalBytes: totalSize,
+              downloadedBytes: 0
+            })
+          );
+        }
+      }
+
+      return totalSize;
+    };
+
     const { branchName, buildName } = build;
 
     const { ftpConfig, localSettings } = getState();
@@ -71,7 +142,8 @@ export function downloadPlaytestBuild(build: PlaytestBaseState) {
     };
 
     const ftpClient: FtpClient = new FtpClient();
-    ftpClient.ftp.verbose = true;
+    DO_NOT_GC_ME_PLEASE.push(ftpClient);
+    ftpClient.ftp.verbose = false;
 
     try {
       dispatch({
@@ -84,6 +156,38 @@ export function downloadPlaytestBuild(build: PlaytestBaseState) {
       });
 
       await ftpClient.access(accessOptions);
+
+      dispatch(
+        setDownloadState({
+          branchName,
+          buildName,
+          totalBytes: 0,
+          downloadedBytes: 0,
+          avgSpeed: 0
+        })
+      );
+      const remoteSize = await fetchTrueRemoteSize(ftpClient);
+      dispatch(
+        setDownloadState({
+          branchName,
+          buildName,
+          totalBytes: remoteSize,
+          downloadedBytes: 0,
+          avgSpeed: 0
+        })
+      );
+
+      ftpClient.trackProgress((info: ProgressInfo) => {
+        dispatch(
+          setDownloadState({
+            branchName,
+            buildName,
+            totalBytes: remoteSize,
+            downloadedBytes: info.bytesOverall
+          })
+        );
+      });
+
       await ftpClient.downloadToDir(
         path.join(localSettings.libraryPath, build.branchName, build.buildName),
         `${ftpConfig.path}/${build.buildName}`
@@ -129,13 +233,8 @@ export function fetchPlaytestsLocalBranches() {
       });
 
       try {
-        await fs.promises.access(
-          path.join(buildPath, 'build.info'),
-          fs.constants.R_OK
-        );
+        await fs.promises.access(path.join(buildPath, 'build.info'), fs.constants.R_OK);
       } catch (error) {
-        reportError(error.message, error.message);
-
         dispatch({
           type: PLAYTEST_LOCAL_STATE_LOAD_START,
           payload: {
@@ -164,9 +263,7 @@ export function fetchPlaytestsLocalBranches() {
       });
       return builds
         .filter((build: Dirent) => build.isDirectory)
-        .map(async (build: Dirent) =>
-          updateBuild(path.join(buildsPath, build.name))
-        );
+        .map(async (build: Dirent) => updateBuild(path.join(buildsPath, build.name)));
     };
 
     const fetchBranches = async (branchesPath: string) => {
@@ -177,9 +274,7 @@ export function fetchPlaytestsLocalBranches() {
       await Promise.all(
         branches
           .filter((branch: Dirent) => branch.isDirectory)
-          .map(async (branch: Dirent) =>
-            fetchBuilds(path.join(branchesPath, branch.name))
-          )
+          .map(async (branch: Dirent) => fetchBuilds(path.join(branchesPath, branch.name)))
       );
     };
 
@@ -190,9 +285,70 @@ export function fetchPlaytestsLocalBranches() {
   };
 }
 
+export function fetchPlaytestRemoteEntryFromFtp(entry: PlaytestBaseState) {
+  return async (dispatch: Dispatch, getState: GetState) => {
+    dispatch({ type: PLAYTEST_REMOTE_ENTRY_LOAD, payload: entry });
+
+    const { ftpConfig, localSettings } = getState();
+
+    const accessOptions = {
+      host: ftpConfig.url,
+      user: ftpConfig.name,
+      password: ftpConfig.pwd,
+      secure: false
+    };
+
+    while (staticFtpInstances > 0) {
+      /* eslint no-await-in-loop: "off" */
+      await sleep(100);
+    }
+    staticFtpInstances += 1;
+    const ftpClient: FtpClient = new FtpClient();
+    ftpClient.ftp.verbose = true;
+
+    try {
+      await ftpClient.access(accessOptions);
+
+      const buildinfoFileName = 'build.info';
+      const tmpFile = `${entry.branchName}_${entry.buildName}.buildinfo`;
+
+      await ftpClient.downloadTo(
+        path.join(localSettings.libraryPath, tmpFile),
+        `${ftpConfig.path}/${entry.buildName}/${buildinfoFileName}`,
+        0
+      );
+
+      const stringContent = await fs.promises.readFile(path.join(localSettings.libraryPath, tmpFile), {
+        encoding: 'utf8',
+        flag: 'r'
+      });
+
+      await fs.promises.unlink(path.join(localSettings.libraryPath, tmpFile));
+
+      const remoteEntry: PlaytestRemoteState = { ...entry, playtestDesc: stringContent };
+      dispatch({ type: PLAYTEST_REMOTE_ENTRY_SET, payload: remoteEntry });
+    } catch (error) {
+      reportError(error.message, error.message);
+    }
+    ftpClient.close();
+    staticFtpInstances -= 1;
+  };
+}
+
 export function fetchPlaytestsRemoteStateFromFtp() {
   return async (dispatch: Dispatch, getState: GetState) => {
+    if (getState()?.playtestsProvider?.providerState?.bIsLoading) {
+      return;
+    }
+
     dispatch({ type: PLAYTEST_REMOTE_STATE_LOAD_START });
+
+    while (staticFtpInstances > 0) {
+      /* eslint no-await-in-loop: "off" */
+      await sleep(100);
+    }
+
+    staticFtpInstances += 1;
 
     const { ftpConfig } = getState();
 
@@ -217,14 +373,19 @@ export function fetchPlaytestsRemoteStateFromFtp() {
           buildName: fileInfo.name,
           bIsImportant: false,
           playtestTitle: fileInfo.name,
-          playtestDesc: fileInfo.size
+          playtestDesc: fileInfo.size,
+          bExtenedInfoSet: false,
+          bPendingUpdate: false
         }));
 
       dispatch({ type: PLAYTEST_REMOTE_STATE_SET_LIST, payload: list });
     } catch (error) {
       reportError('failed to read ftp config', error.message);
+      dispatch({ type: PLAYTEST_REMOTE_STATE_SET_LIST, payload: [] });
     }
     ftpClient.close();
+
+    staticFtpInstances -= 1;
   };
 }
 

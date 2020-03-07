@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<files datetime="1583449444.881105" root="/d1/builds/master/6031/">
+  <file md5="bdd38d5af020c09c271334baed20bfe9" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/DeviousServer.exe" size="186880" />
+  <file md5="f8f584c9537f5d9b3b6696e47814d64a" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Manifest_NonUFSFiles_Win64.txt" size="1920" />
+  <file md5="a55c3a9703a106ec5698fc2d5a96aad8" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Devious/Binaries/Win64/DeviousServer-Win64-Shipping.exe" size="59312640" />
+  <file md5="82487e861c114c3d84321ee02d4eb9ab" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Devious/Content/Paks/Devious-WindowsServer.pak" size="67370818" />
+  <file md5="68dcaa79a20f312044f0b5582f4a67b6" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Devious/Content/Splash/Splash.bmp" size="480056" />
+  <file md5="15ee5c7404fa5b6de0eb0c042474d3bf" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/DbgHelp/dbghelp.dll" size="1369936" />
+  <file md5="eb7a6463cd4e9b5c9ae209f125ecfd07" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/libsndfile/Win64/libsndfile-1.dll" size="1810944" />
+  <file md5="efd88ddde0324de8d9a2d0460b4e731e" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/NVIDIA/NVaftermath/Win64/GFSDK_Aftermath_Lib.x64.dll" size="117760" />
+  <file md5="92cddd4c37c708084ad1cfce8a5d9037" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/Oculus/OVRPlugin/OVRPlugin/Win64/OVRPlugin.dll" size="2468792" />
+  <file md5="cd1f16736ccc5dd8c8ce8525957f4cfb" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/Ogg/Win64/VS2015/libogg_64.dll" size="49152" />
+  <file md5="9834f26b57de754808ae3d78a649323d" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/OpenVR/OpenVRv1_5_17/Win64/openvr_api.dll" size="597792" />
+  <file md5="ef0ba4ab9321242dc5713a264a8da0c4" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/PhysX3/Win64/VS2015/ApexFramework_x64.dll" size="1043968" />
+  <file md5="0b61bd104d431055b1ea5d5a7b608ab9" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/PhysX3/Win64/VS2015/APEX_Clothing_x64.dll" size="1219072" />
+  <file md5="f958454319b2757aba7adc295fea89cd" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/PhysX3/Win64/VS2015/APEX_Legacy_x64.dll" size="3329536" />
+  <file md5="e4ef58dff418857f576d40bb9a48040e" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/PhysX3/Win64/VS2015/NvCloth_x64.dll" size="265728" />
+  <file md5="34550b51772813110dd5d9c72bc9220d" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/PhysX3/Win64/VS2015/PhysX3Common_x64.dll" size="1598976" />
+  <file md5="40f98378ad1e52c485e9a6eaeca2892e" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/PhysX3/Win64/VS2015/PhysX3Cooking_x64.dll" size="244736" />
+  <file md5="2fa1eeaaec322c035f71d1d3d0b74e8b" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/PhysX3/Win64/VS2015/PhysX3_x64.dll" size="2105344" />
+  <file md5="e0d4f8c026f96c3300073935c35d2207" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/PhysX3/Win64/VS2015/PxFoundation_x64.dll" size="54784" />
+  <file md5="ed4f5fad3a24d004dc775dea23f6c56c" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/PhysX3/Win64/VS2015/PxPvdSDK_x64.dll" size="188928" />
+  <file md5="f453241dec90dbfa5b7322cc4a67a143" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/Vorbis/Win64/VS2015/libvorbisfile_64.dll" size="37888" />
+  <file md5="ce94029c20227191bf97f6d719b651c5" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/Vorbis/Win64/VS2015/libvorbis_64.dll" size="1714176" />
+  <file md5="ddc606a35700e5b41019b4669a71fccb" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Binaries/ThirdParty/Windows/DirectX/x64/WinPixEventRuntime.dll" size="44752" />
+  <file md5="f2346ac7fd2e02fe376c0ade075841ba" path="/d1/builds/master/6031/Server/Shipping/WindowsServer/Engine/Extras/Redist/en-us/UE4PrereqSetup_x64.exe" size="41562088" />
+</files>

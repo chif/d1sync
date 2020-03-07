@@ -11,6 +11,7 @@ export default function Routes() {
       <Switch>
         <Route path={routes.COUNTER} component={CounterPage} />
         <Route path={routes.HOME} component={HomePage} />
+        <Route path={routes.PLAYTEST} component={HomePage} />
       </Switch>
     </App>
   );

@@ -8,7 +8,7 @@ export default function Home() {
     <Container>
       <Row>
         <Col>
-          <h1>
+          <h1 className="display-4">
             <span className="bg-danger">D1</span>
             Playtester
           </h1>
