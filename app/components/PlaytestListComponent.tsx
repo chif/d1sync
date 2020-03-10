@@ -5,7 +5,11 @@ import { useSelector, useDispatch } from 'react-redux';
 import PlaytestBuildComponent from './PlaytestBuildComponent';
 import { D1RootState } from '../reducers/types';
 import { D1Action, PlaytestRemoteState, DPlaytestsProviderState } from '../reducers/playtestTypes';
-import { fetchPlaytestsRemoteStateFromFtp, fetchPlaytestsLocalBranches } from '../actions/playtestActions';
+import {
+  fetchPlaytestsRemoteStateFromFtp,
+  fetchPlaytestsLocalBranches,
+  updateRuntimeState
+} from '../actions/playtestActions';
 
 export default function PlaytestListComponent() {
   const playtests: Array<PlaytestRemoteState> = useSelector((state: D1RootState) => state.playtestsProvider.playtests);
@@ -22,8 +26,19 @@ export default function PlaytestListComponent() {
     if (!ftpConfig.bIsLoading) {
       dispatch(fetchPlaytestsRemoteStateFromFtp());
       dispatch(fetchPlaytestsLocalBranches());
+      dispatch(updateRuntimeState());
     }
   }, [ftpConfig]);
+
+  useEffect(() => {
+    const timerHandle = setInterval(() => {
+      dispatch(updateRuntimeState());
+    }, 500);
+
+    return () => {
+      clearInterval(timerHandle);
+    };
+  });
 
   const getBuildComponents = () => {
     if (providerState.bIsLoading) {

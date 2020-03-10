@@ -96,9 +96,6 @@ const createWindow = async () => {
           }
   });
 
-  mainWindow.removeMenu();
-  // mainWindow.openDevTools();
-
   mainWindow.loadURL(`file://${__dirname}/app.html`);
 
   let deeplinkingUrl;

@@ -9,8 +9,22 @@ import { createSelector } from 'reselect';
 import filesize from 'filesize';
 import seedrandom from 'seedrandom';
 import { D1RootState } from '../reducers/types';
-import { PlaytestBaseState, ELocalState } from '../reducers/playtestTypes';
-import { downloadPlaytestBuild, fetchPlaytestRemoteEntryFromFtp } from '../actions/playtestActions';
+import {
+  PlaytestBaseState,
+  ELocalState,
+  ESelectedState,
+  PlaytestRuntimeState,
+  EPlaytestRuntimeState
+} from '../reducers/playtestTypes';
+import {
+  downloadPlaytestBuild,
+  fetchPlaytestRemoteEntryFromFtp,
+  deleteLocalBuild,
+  launchClient,
+  stopClient,
+  launchServer,
+  stopServer
+} from '../actions/playtestActions';
 
 type Props = {
   branchName: string;
@@ -63,7 +77,8 @@ const selectMyRemoteEntry = createSelector(
   (rootState: D1RootState = {}) => rootState.playtestsProvider.playtests,
   (rootState: D1RootState = {}) => rootState.playtestsProvider.localState,
   (rootState: D1RootState = {}) => rootState.playtestsProvider.downloadState,
-  (baseEntry, remoteStates, localStates, downloadStates) => ({
+  (rootState: D1RootState = {}) => rootState.playtestsProvider.runtimeState,
+  (baseEntry, remoteStates, localStates, downloadStates, runtimeStates) => ({
     remoteState: remoteStates.find(
       remoteEntry => remoteEntry.buildName === baseEntry.buildName && remoteEntry.branchName === baseEntry.branchName
     ),
@@ -73,7 +88,13 @@ const selectMyRemoteEntry = createSelector(
     downloadState: downloadStates.find(
       downloadEntry =>
         downloadEntry.branchName === baseEntry.branchName && downloadEntry.buildName === baseEntry.buildName
-    ) || { downloadedBytes: 0, totalBytes: 0 }
+    ) || { downloadedBytes: 0, totalBytes: 0 },
+    runtimeState:
+      runtimeStates.find(
+        runtimeEntry =>
+          runtimeEntry.branchName === baseEntry.branchName && runtimeEntry.buildName === baseEntry.buildName
+      ) ||
+      ({ bClientState: EPlaytestRuntimeState.Idle, bServerState: EPlaytestRuntimeState.Idle } as PlaytestRuntimeState)
   })
 );
 
@@ -89,9 +110,11 @@ const selectIsSelected = createSelector(
 const BuildComponent: React.FC<Props> = props => {
   const { branchName, buildName, bPlaceholder } = props;
 
-  const { remoteState, localState, downloadState } = useSelector((state: D1RootState) =>
+  const { remoteState, localState, downloadState, runtimeState } = useSelector((state: D1RootState) =>
     selectMyRemoteEntry({ ...state, branchName, buildName })
   );
+
+  const { state: selectedEntryState } = useSelector((state: D1RootState) => state.playtestsProvider.selectedEntry);
 
   const bIsSelected = useSelector((state: D1RootState) => selectIsSelected({ ...state, branchName, buildName }));
 
@@ -107,6 +130,26 @@ const BuildComponent: React.FC<Props> = props => {
     dispatch(downloadPlaytestBuild(remoteState));
   });
 
+  const deleteCallback = useCallback(() => {
+    dispatch(deleteLocalBuild(localState));
+  });
+
+  const startClientCallback = useCallback(() => {
+    dispatch(launchClient(localState));
+  });
+
+  const startServerCallback = useCallback(() => {
+    dispatch(launchServer(localState));
+  });
+
+  const stopClientCallback = useCallback(() => {
+    dispatch(stopClient(localState));
+  });
+
+  const stopServerCallback = useCallback(() => {
+    dispatch(stopServer(localState));
+  });
+
   useEffect(() => {
     if (!ftpConfig.bIsLoading && remoteState && !remoteState.bExtenedInfoSet && !remoteState.bPendingUpdate) {
       dispatch(fetchPlaytestRemoteEntryFromFtp({ branchName, buildName }));
@@ -115,6 +158,7 @@ const BuildComponent: React.FC<Props> = props => {
 
   const myRef = useRef(null);
   const tooltipTargetRef = useRef(null);
+  const serverIconRef = useRef(null);
 
   useEffect(() => {
     const scrollToMe = async () => {
@@ -125,7 +169,8 @@ const BuildComponent: React.FC<Props> = props => {
         remoteState.bExtenedInfoSet &&
         !remoteState.bPendingUpdate &&
         localStateValue !== ELocalState.PendingState &&
-        bIsSelected
+        bIsSelected &&
+        selectedEntryState === ESelectedState.WantToDownload
       ) {
         timeoutHandle = setTimeout(() => {
           if (
@@ -133,7 +178,8 @@ const BuildComponent: React.FC<Props> = props => {
             remoteState &&
             remoteState.bExtenedInfoSet &&
             !remoteState.bPendingUpdate &&
-            bIsSelected
+            bIsSelected &&
+            selectedEntryState === ESelectedState.WantToDownload
           ) {
             if (
               localStateValue === ELocalState.Offline &&
@@ -205,6 +251,62 @@ const BuildComponent: React.FC<Props> = props => {
     );
   };
 
+  const getClientButton = () => {
+    if (runtimeState.bClientState === EPlaytestRuntimeState.Running) {
+      return (
+        <Button className="mr-2" variant="success" onClick={stopClientCallback}>
+          <Spinner animation="border" size="sm" className="mr-1" />
+          <FontAwesomeIcon className="mr-1" icon={faGamepad} />
+          Stop
+        </Button>
+      );
+    }
+    return (
+      <Button className="mr-2" variant="success" onClick={startClientCallback}>
+        <FontAwesomeIcon className="mr-1" icon={faGamepad} />
+        Play
+      </Button>
+    );
+  };
+
+  const getServerButton = () => {
+    if (runtimeState.bServerState === EPlaytestRuntimeState.Running) {
+      return (
+        <>
+          <Button className="mr-2" variant="secondary" ref={serverIconRef} onClick={stopServerCallback}>
+            <Spinner animation="border" size="sm" className="mr-1" />
+            <FontAwesomeIcon className="mr-1" icon={faServer} />
+            Stop
+          </Button>
+        </>
+      );
+    }
+    return (
+      <Button className="mr-2" variant="secondary" onClick={startServerCallback}>
+        <FontAwesomeIcon className="mr-1" icon={faServer} />
+        Server
+      </Button>
+    );
+  };
+
+  const getDeleteButton = () => {
+    if (
+      runtimeState.bClientState === EPlaytestRuntimeState.Running ||
+      runtimeState.bServerState === EPlaytestRuntimeState.Running
+    ) {
+      return (
+        <Button variant="secondary" onClick={deleteCallback} disabled>
+          <FontAwesomeIcon icon={faTrash} />
+        </Button>
+      );
+    }
+    return (
+      <Button variant="secondary" onClick={deleteCallback}>
+        <FontAwesomeIcon icon={faTrash} />
+      </Button>
+    );
+  };
+
   const getButtons = () => {
     if (bPlaceholder) {
       return <></>;
@@ -221,17 +323,9 @@ const BuildComponent: React.FC<Props> = props => {
       case ELocalState.Ready:
         return (
           <div>
-            <Button className="mr-2" variant="success">
-              <FontAwesomeIcon className="mr-1" icon={faGamepad} />
-              Play
-            </Button>
-            <Button className="mr-2" variant="secondary">
-              <FontAwesomeIcon className="mr-1" icon={faServer} />
-              Server
-            </Button>
-            <Button variant="secondary">
-              <FontAwesomeIcon icon={faTrash} />
-            </Button>
+            {getClientButton()}
+            {getServerButton()}
+            {getDeleteButton()}
           </div>
         );
       case ELocalState.Downloading:
@@ -291,7 +385,10 @@ const BuildComponent: React.FC<Props> = props => {
     );
   };
 
-  const getHederClass = () => {
+  const getHeaderClass = () => {
+    if (localStateValue === ELocalState.Deleting) {
+      return 'm-1 shadow bg-danger';
+    }
     if (bIsSelected) {
       return `m-1 shadow bg-info`;
     }
@@ -300,7 +397,7 @@ const BuildComponent: React.FC<Props> = props => {
 
   return (
     <Card border={getBorder()} className="m-2 shadow-lg" ref={myRef}>
-      <Card.Header className={getHederClass()}>{getHeader()}</Card.Header>
+      <Card.Header className={getHeaderClass()}>{getHeader()}</Card.Header>
       <Card.Body>{getContent()}</Card.Body>
     </Card>
   );

@@ -1,9 +1,13 @@
 import electron from 'electron';
+import { snapshot } from 'process-list';
+import { spawn } from 'child_process';
 import fs, { Dirent } from 'fs';
+import rimraf from 'rimraf';
 import path from 'path';
 import { Client as FtpClient, FileInfo } from 'basic-ftp';
 import { ProgressInfo } from 'basic-ftp/dist/ProgressTracker';
 import sleep from 'await-sleep';
+import { shallowEqual } from 'react-redux';
 import { Dispatch, GetState } from '../reducers/types';
 import {
   PLAYTEST_TEST,
@@ -19,9 +23,18 @@ import {
   PLAYTEST_REMOTE_ENTRY_SET,
   RANDOM_SEED_SET,
   PLAYTEST_DOWNLOAD_STATE_SET,
-  PLAYTEST_SELECTED_ENTRY_SET
+  PLAYTEST_SELECTED_ENTRY_SET,
+  PLAYTEST_RUNTIME_STATE_SET
 } from '../reducers/actionTypes';
-import { ELocalState, PlaytestBaseState, PlaytestRemoteState, PlaytestDownloadState } from '../reducers/playtestTypes';
+import {
+  ELocalState,
+  PlaytestBaseState,
+  PlaytestRemoteState,
+  PlaytestDownloadState,
+  ESelectedState,
+  PlaytestRuntimeState,
+  EPlaytestRuntimeState
+} from '../reducers/playtestTypes';
 
 const DO_NOT_GC_ME_PLEASE = [];
 let staticFtpInstances = 0;
@@ -38,7 +51,8 @@ export function setRandomSeed(inSeed: number) {
 export function setSelectedEntry(entry: PlaytestBaseState) {
   return {
     type: PLAYTEST_SELECTED_ENTRY_SET,
-    payload: entry
+    payload: entry,
+    state: ESelectedState.WantToDownload
   };
 }
 
@@ -285,6 +299,44 @@ export function fetchPlaytestsLocalBranches() {
   };
 }
 
+export function deleteLocalBuild(build: PlaytestBaseState) {
+  return async (dispatch: Dispatch, getState: GetState) => {
+    const { localSettings } = getState();
+    const { buildName, branchName } = build;
+
+    dispatch({
+      type: PLAYTEST_LOCAL_STATE_LOAD_START,
+      payload: {
+        branchName,
+        buildName,
+        state: ELocalState.Deleting
+      }
+    });
+
+    try {
+      await fs.promises.access(
+        path.join(localSettings.libraryPath, build.branchName, build.buildName, 'build.info'),
+        fs.constants.R_OK
+      );
+
+      rimraf(
+        path.join(localSettings.libraryPath, build.branchName, build.buildName),
+        {
+          maxBusyTries: 5,
+          emfileWait: 1000,
+          glob: false
+        },
+        () => {
+          dispatch(fetchPlaytestsLocalBranches());
+        }
+      );
+    } catch (error) {
+      reportError(error);
+      dispatch(fetchPlaytestsLocalBranches());
+    }
+  };
+}
+
 export function fetchPlaytestRemoteEntryFromFtp(entry: PlaytestBaseState) {
   return async (dispatch: Dispatch, getState: GetState) => {
     dispatch({ type: PLAYTEST_REMOTE_ENTRY_LOAD, payload: entry });
@@ -386,6 +438,176 @@ export function fetchPlaytestsRemoteStateFromFtp() {
     ftpClient.close();
 
     staticFtpInstances -= 1;
+  };
+}
+
+export function updateRuntimeState() {
+  const DEVIOUS_CLIENT = 'devious.exe';
+  const DEVIOUS_SERVER = 'deviousserver.exe';
+  const WHITELIST = [DEVIOUS_CLIENT, DEVIOUS_SERVER];
+
+  return async (dispatch: Dispatch, getState: GetState) => {
+    type ProcessDescriptor = {
+      name: string;
+      path: string;
+      cmdline: string;
+    };
+
+    const allProcesses = (await snapshot('name', 'path', 'cmdline')) as Array<ProcessDescriptor>;
+
+    const getBuildInfo = (descriptor: ProcessDescriptor): PlaytestBaseState => {
+      const buildPath = path.dirname(path.dirname(path.dirname(path.dirname(descriptor.path))));
+      return {
+        buildName: path.basename(buildPath),
+        branchName: path.basename(path.dirname(buildPath))
+      };
+    };
+
+    const assignRuntimeState = (descriptor: ProcessDescriptor, outEntry: PlaytestRuntimeState) => {
+      if (descriptor.name.toLocaleLowerCase() === DEVIOUS_SERVER) {
+        outEntry.bServerState = EPlaytestRuntimeState.Running;
+      } else {
+        outEntry.bClientState = EPlaytestRuntimeState.Running;
+      }
+    };
+
+    const result: Array<PlaytestRuntimeState> = [];
+
+    allProcesses
+      .filter(entry => WHITELIST.indexOf(entry.name.toLocaleLowerCase()) >= 0)
+      .forEach(descriptor => {
+        const baseState = getBuildInfo(descriptor);
+        const currentEntry = result.find(
+          resultEntry =>
+            resultEntry.branchName === baseState.branchName && resultEntry.buildName === baseState.buildName
+        );
+
+        if (currentEntry) {
+          assignRuntimeState(descriptor, currentEntry);
+        } else {
+          const newEntry: PlaytestRuntimeState = {
+            branchName: baseState.branchName,
+            buildName: baseState.buildName
+          };
+          assignRuntimeState(descriptor, newEntry);
+          result.push(newEntry);
+        }
+      });
+
+    if (!shallowEqual(getState().playtestsProvider.runtimeState, result)) {
+      dispatch({ type: PLAYTEST_RUNTIME_STATE_SET, payload: result });
+    }
+  };
+}
+
+export function startApp(cmd: string, argv0: string) {
+  return async (dispatch: Dispatch) => {
+    spawn(path.basename(cmd), {
+      cwd: path.dirname(cmd),
+      detached: true,
+      argv0
+    });
+
+    dispatch(updateRuntimeState());
+  };
+}
+
+export function stopApp(partialPath: string) {
+  return async (dispatch: Dispatch) => {
+    type ProcessDescriptor = {
+      pid: string;
+      name: string;
+      path: string;
+      cmdline: string;
+    };
+
+    const allProcesses = (await snapshot('pid', 'name', 'path', 'cmdline')) as Array<ProcessDescriptor>;
+    const target = allProcesses.find(
+      descriptor => descriptor.path.toLocaleLowerCase() === partialPath.toLocaleLowerCase()
+    );
+    if (target && target.pid) {
+      process.kill(target.pid, 'SIGTERM');
+    }
+
+    dispatch(updateRuntimeState());
+  };
+}
+
+// TODO: переделать разахрдоженные пути. или нет
+export function launchClient(entry: PlaytestBaseState) {
+  return async (dispatch: Dispatch, getState: GetState) => {
+    const { localSettings } = getState();
+
+    const pathToClientExeDevelopment = path.join(
+      localSettings.libraryPath,
+      entry.branchName,
+      entry.buildName,
+      'Client',
+      'Development',
+      'WindowsNoEditor',
+      'Devious.exe'
+    );
+
+    dispatch(startApp(pathToClientExeDevelopment, ''));
+  };
+}
+
+export function stopClient(entry: PlaytestBaseState) {
+  return async (dispatch: Dispatch, getState: GetState) => {
+    const { localSettings } = getState();
+
+    const pathToClientExeDevelopment = path.join(
+      localSettings.libraryPath,
+      entry.branchName,
+      entry.buildName,
+      'Client',
+      'Development',
+      'WindowsNoEditor',
+      'Devious',
+      'Binaries',
+      'Win64',
+      'Devious.exe'
+    );
+
+    dispatch(stopApp(pathToClientExeDevelopment));
+  };
+}
+
+export function launchServer(entry: PlaytestBaseState) {
+  return async (dispatch: Dispatch, getState: GetState) => {
+    const { localSettings } = getState();
+
+    const pathToServerExeDevelopment = path.join(
+      localSettings.libraryPath,
+      entry.branchName,
+      entry.buildName,
+      'Server',
+      'Development',
+      'WindowsServer',
+      'DeviousServer.exe'
+    );
+
+    dispatch(startApp(pathToServerExeDevelopment, '-log'));
+  };
+}
+
+export function stopServer(entry: PlaytestBaseState) {
+  return async (dispatch: Dispatch, getState: GetState) => {
+    const { localSettings } = getState();
+    const pathToServerExeDevelopment = path.join(
+      localSettings.libraryPath,
+      entry.branchName,
+      entry.buildName,
+      'Server',
+      'Development',
+      'WindowsServer',
+      'Devious',
+      'Binaries',
+      'Win64',
+      'DeviousServer.exe'
+    );
+
+    dispatch(stopApp(pathToServerExeDevelopment));
   };
 }
 

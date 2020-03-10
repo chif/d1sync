@@ -8,7 +8,11 @@ import {
   PlaytestLocalState,
   PlaytestRemoteState,
   PlaytestBaseState,
-  PlaytestDownloadState
+  PlaytestDownloadState,
+  PlaytestSelectedState,
+  ELocalState,
+  ESelectedState,
+  PlaytestRuntimeState
 } from './playtestTypes';
 import { FtpConfig, LocalSettings } from './types';
 import {
@@ -25,7 +29,8 @@ import {
   PLAYTEST_REMOTE_ENTRY_SET,
   RANDOM_SEED_SET,
   PLAYTEST_DOWNLOAD_STATE_SET,
-  PLAYTEST_SELECTED_ENTRY_SET
+  PLAYTEST_SELECTED_ENTRY_SET,
+  PLAYTEST_RUNTIME_STATE_SET
 } from './actionTypes';
 
 export function setRandomSeed(state: number, action: D1Action) {
@@ -207,8 +212,21 @@ export function providerState(state: DPlaytestsProviderState, action: Action<str
   }
 }
 
-export function selectedEntry(state: PlaytestBaseState, action: D1Action) {
+export function selectedEntry(state: PlaytestSelectedState, action: D1Action) {
   switch (action.type) {
+    case PLAYTEST_LOCAL_STATE_LOAD_START: {
+      const payloadEntry: PlaytestLocalState = action.payload;
+      if (
+        payloadEntry.state === ELocalState.Ready &&
+        payloadEntry.branchName === state.branchName &&
+        payloadEntry.buildName === state.buildName
+      ) {
+        return produce(state, draft => {
+          draft.state = ESelectedState.DownloadedOnce;
+        });
+      }
+      return state || {};
+    }
     case PLAYTEST_SELECTED_ENTRY_SET:
       return action.payload;
     /* case PLAYTEST_REMOTE_STATE_SET_LIST: {
@@ -229,12 +247,25 @@ export function selectedEntry(state: PlaytestBaseState, action: D1Action) {
   }
 }
 
+export function runtimeState(state: Array<PlaytestRuntimeState> = [], action: D1Action) {
+  switch (action.type) {
+    case FTP_CONFIG_LOAD_START:
+    case FTP_CONFIG_LOAD_FINISH:
+      return [];
+    case PLAYTEST_RUNTIME_STATE_SET:
+      return action.payload;
+    default:
+      return state || [];
+  }
+}
+
 export function createPlaytestReducer() {
   return combineReducers({
     playtests,
     localState,
     providerState,
     downloadState,
-    selectedEntry
+    selectedEntry,
+    runtimeState
   });
 }

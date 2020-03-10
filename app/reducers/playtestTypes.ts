@@ -39,7 +39,8 @@ export enum ELocalState {
   PendingState,
   Offline,
   Downloading,
-  Ready
+  Ready,
+  Deleting
 }
 
 export type PlaytestLocalState = PlaytestBaseState & {
@@ -53,6 +54,25 @@ export type PlaytestDownloadState = PlaytestBaseState & {
   lastReportAt: number;
 };
 
+export enum EPlaytestRuntimeState {
+  Idle,
+  Running
+}
+
+export type PlaytestRuntimeState = PlaytestBaseState & {
+  bServerState: EPlaytestRuntimeState;
+  bClientState: EPlaytestRuntimeState;
+};
+
+export enum ESelectedState {
+  WantToDownload,
+  DownloadedOnce
+}
+
+export type PlaytestSelectedState = PlaytestBaseState & {
+  state: ESelectedState;
+};
+
 export type DPlaytestsProviderState = {
   bIsLoading: boolean;
 };
@@ -62,7 +82,8 @@ export type DPlaytestsProvider = {
   localState: Array<PlaytestLocalState>;
   downloadState: Array<PlaytestDownloadState>;
   providerState: DPlaytestsProviderState;
-  selectedEntry: PlaytestBaseState;
+  selectedEntry: PlaytestSelectedState;
+  runtimeState: Array<PlaytestRuntimeState>;
 };
 
 export type D1Action = Action<string> & {
