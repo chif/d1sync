@@ -3,6 +3,7 @@ import { DPlaytestsProvider } from './playtestTypes';
 
 export type LocalSettings = {
   libraryPath: string;
+  bPathWasSetByUser: boolean;
 };
 
 export type FtpConfig = {

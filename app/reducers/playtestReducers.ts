@@ -1,5 +1,6 @@
 import { Action, combineReducers } from 'redux';
 import electron from 'electron';
+import path from 'path';
 import { produce } from 'immer';
 import { isNullOrUndefined } from 'util';
 import {
@@ -47,11 +48,13 @@ export function localSettings(state: LocalSettings, action: D1Action) {
     case LOCAL_SETTINGS_UPDATE_LIBRARY_PATH:
       return produce(state, newState => {
         newState.libraryPath = action.payload;
+        newState.bPathWasSetByUser = true;
       });
     default:
       if (!state || !state.libraryPath) {
         return produce(state || {}, newState => {
-          newState.libraryPath = (electron.app || electron.remote.app).getPath('userData');
+          newState.libraryPath = path.join((electron.app || electron.remote.app).getPath('userData'), 'playtests');
+          newState.bPathWasSetByUser = false;
         });
       }
       return state;

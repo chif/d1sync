@@ -286,6 +286,7 @@
     "electron-updater": "^4.2.0",
     "fast-xml-parser": "^3.16.0",
     "filesize": "^6.1.0",
+    "fs-extra": "^8.1.0",
     "history": "^4.10.1",
     "immer": "^5.3.6",
     "memory-streams": "^0.1.3",

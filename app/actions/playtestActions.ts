@@ -3,6 +3,7 @@ import { snapshot } from 'process-list';
 import { spawn } from 'child_process';
 import fs, { Dirent } from 'fs';
 import rimraf from 'rimraf';
+import fse from 'fs-extra';
 import path from 'path';
 import { Client as FtpClient, FileInfo } from 'basic-ftp';
 import { ProgressInfo } from 'basic-ftp/dist/ProgressTracker';
@@ -33,13 +34,16 @@ import {
   PlaytestDownloadState,
   ESelectedState,
   PlaytestRuntimeState,
-  EPlaytestRuntimeState
+  EPlaytestRuntimeState,
+  EDownloadState
 } from '../reducers/playtestTypes';
 
 const DO_NOT_GC_ME_PLEASE = [];
 let staticFtpInstances = 0;
 
 export function reportError() {}
+
+export function ensurePathExists();
 
 export function setRandomSeed(inSeed: number) {
   return {
@@ -71,6 +75,7 @@ export function selectLibraryPath() {
     });
 
     if (!dir.canceled) {
+      await fse.ensureDir(dir.filePaths[0]);
       dispatch({
         type: LOCAL_SETTINGS_UPDATE_LIBRARY_PATH,
         payload: dir.filePaths[0]
@@ -95,139 +100,6 @@ export function loadFtpConfig() {
     } catch (error) {
       reportError('failed to read ftp config', error.message);
     }
-  };
-}
-
-export function downloadPlaytestBuild(build: PlaytestBaseState) {
-  return async (dispatch: Dispatch, getState: GetState) => {
-    const fetchTrueRemoteSize = async (ftpClient: FtpClient) => {
-      const { ftpConfig } = getState();
-      const { buildName, branchName } = build;
-
-      const directories: Array<string> = [];
-      const fetchDirSize = async (remotePath: string) => {
-        const list = await ftpClient.list(remotePath);
-        let totalSize = 0;
-        list.forEach(entry => {
-          if (entry.isDirectory) {
-            directories.push(`${remotePath}/${entry.name}`);
-          } else {
-            totalSize += entry.size;
-          }
-
-          return entry;
-        });
-
-        return totalSize;
-      };
-
-      let totalSize = 0;
-      let dispatchThreshold = 0;
-      directories.push(`${ftpConfig.path}/${buildName}`);
-
-      while (directories.length > 0) {
-        totalSize += await fetchDirSize(directories.pop());
-        if (totalSize > dispatchThreshold) {
-          dispatchThreshold = totalSize + 1024 * 1024 * 100;
-
-          dispatch(
-            setDownloadState({
-              branchName,
-              buildName,
-              totalBytes: totalSize,
-              downloadedBytes: 0
-            })
-          );
-        }
-      }
-
-      return totalSize;
-    };
-
-    const { branchName, buildName } = build;
-
-    const { ftpConfig, localSettings } = getState();
-
-    const accessOptions = {
-      host: ftpConfig.url,
-      user: ftpConfig.name,
-      password: ftpConfig.pwd,
-      secure: false
-    };
-
-    const ftpClient: FtpClient = new FtpClient();
-    DO_NOT_GC_ME_PLEASE.push(ftpClient);
-    ftpClient.ftp.verbose = false;
-
-    try {
-      dispatch({
-        type: PLAYTEST_LOCAL_STATE_LOAD_START,
-        payload: {
-          branchName,
-          buildName,
-          state: ELocalState.Downloading
-        }
-      });
-
-      await ftpClient.access(accessOptions);
-
-      dispatch(
-        setDownloadState({
-          branchName,
-          buildName,
-          totalBytes: 0,
-          downloadedBytes: 0,
-          avgSpeed: 0
-        })
-      );
-      const remoteSize = await fetchTrueRemoteSize(ftpClient);
-      dispatch(
-        setDownloadState({
-          branchName,
-          buildName,
-          totalBytes: remoteSize,
-          downloadedBytes: 0,
-          avgSpeed: 0
-        })
-      );
-
-      ftpClient.trackProgress((info: ProgressInfo) => {
-        dispatch(
-          setDownloadState({
-            branchName,
-            buildName,
-            totalBytes: remoteSize,
-            downloadedBytes: info.bytesOverall
-          })
-        );
-      });
-
-      await ftpClient.downloadToDir(
-        path.join(localSettings.libraryPath, build.branchName, build.buildName),
-        `${ftpConfig.path}/${build.buildName}`
-        // `${ftpConfig.path}/${build.branchName}/${build.buildName}`
-      );
-
-      dispatch({
-        type: PLAYTEST_LOCAL_STATE_LOAD_START,
-        payload: {
-          branchName,
-          buildName,
-          state: ELocalState.Ready
-        }
-      });
-    } catch (error) {
-      reportError('failed to read ftp config', error.message);
-      dispatch({
-        type: PLAYTEST_LOCAL_STATE_LOAD_START,
-        payload: {
-          branchName,
-          buildName,
-          state: ELocalState.Offline
-        }
-      });
-    }
-    ftpClient.close();
   };
 }
 
@@ -295,7 +167,152 @@ export function fetchPlaytestsLocalBranches() {
     const { localSettings } = getState();
 
     dispatch({ type: PLAYTEST_LOCAL_STATE_SET_LIST_START });
+    await fse.ensureDir(localSettings.libraryPath);
     await fetchBranches(localSettings.libraryPath);
+  };
+}
+
+export function downloadPlaytestBuild(build: PlaytestBaseState) {
+  return async (dispatch: Dispatch, getState: GetState) => {
+    const fetchTrueRemoteSize = async (ftpClient: FtpClient) => {
+      const { ftpConfig } = getState();
+      const { buildName, branchName } = build;
+
+      const directories: Array<string> = [];
+      const fetchDirSize = async (remotePath: string) => {
+        const list = await ftpClient.list(remotePath);
+        let totalSize = 0;
+        list.forEach(entry => {
+          if (entry.isDirectory) {
+            directories.push(`${remotePath}/${entry.name}`);
+          } else {
+            totalSize += entry.size;
+          }
+
+          return entry;
+        });
+
+        return totalSize;
+      };
+
+      let totalSize = 0;
+      let dispatchThreshold = 0;
+      directories.push(`${ftpConfig.path}/${buildName}`);
+
+      while (directories.length > 0) {
+        totalSize += await fetchDirSize(directories.pop());
+        if (totalSize > dispatchThreshold) {
+          dispatchThreshold = totalSize + 1024 * 1024 * 100;
+
+          dispatch(
+            setDownloadState({
+              state: EDownloadState.Downloading,
+              branchName,
+              buildName,
+              totalBytes: totalSize,
+              downloadedBytes: 0
+            })
+          );
+        }
+      }
+
+      return totalSize;
+    };
+
+    const { branchName, buildName } = build;
+
+    const { ftpConfig, localSettings } = getState();
+
+    const accessOptions = {
+      host: ftpConfig.url,
+      user: ftpConfig.name,
+      password: ftpConfig.pwd,
+      secure: false
+    };
+
+    const ftpClient: FtpClient = new FtpClient();
+    DO_NOT_GC_ME_PLEASE.push(ftpClient);
+    ftpClient.ftp.verbose = false;
+
+    try {
+      await ftpClient.access(accessOptions);
+
+      dispatch(
+        setDownloadState({
+          state: EDownloadState.Downloading,
+          branchName,
+          buildName,
+          totalBytes: 0,
+          downloadedBytes: 0,
+          avgSpeed: 0
+        })
+      );
+      const remoteSize = await fetchTrueRemoteSize(ftpClient);
+      dispatch(
+        setDownloadState({
+          state: EDownloadState.Downloading,
+          branchName,
+          buildName,
+          totalBytes: remoteSize,
+          downloadedBytes: 0,
+          avgSpeed: 0
+        })
+      );
+
+      ftpClient.trackProgress((info: ProgressInfo) => {
+        dispatch(
+          setDownloadState({
+            state: EDownloadState.Downloading,
+            branchName,
+            buildName,
+            totalBytes: remoteSize,
+            downloadedBytes: info.bytesOverall
+          })
+        );
+      });
+
+      await fse.ensureDir(localSettings.libraryPath);
+      await ftpClient.downloadToDir(
+        path.join(localSettings.libraryPath, build.branchName, build.buildName),
+        `${ftpConfig.path}/${build.buildName}`
+        // `${ftpConfig.path}/${build.branchName}/${build.buildName}`
+      );
+
+      dispatch(
+        setDownloadState({
+          state: EDownloadState.Success,
+          branchName,
+          buildName,
+          totalBytes: 0,
+          downloadedBytes: 0
+        })
+      );
+    } catch (error) {
+      reportError('failed to read ftp config', error.message);
+      dispatch(
+        setDownloadState({
+          state: EDownloadState.Error,
+          branchName,
+          buildName,
+          totalBytes: 0,
+          downloadedBytes: 0
+        })
+      );
+    }
+    ftpClient.close();
+
+    await dispatch(fetchPlaytestsLocalBranches());
+  };
+}
+
+export function selectPathAndDownloadPlaytestBuild(build: PlaytestBaseState) {
+  return async (dispatch: Dispatch, getState: GetState) => {
+    if (!getState().localSettings.bPathWasSetByUser) {
+      await dispatch(selectLibraryPath());
+    }
+    if (getState().localSettings.bPathWasSetByUser) {
+      await dispatch(downloadPlaytestBuild(build));
+    }
   };
 }
 
@@ -364,12 +381,14 @@ export function fetchPlaytestRemoteEntryFromFtp(entry: PlaytestBaseState) {
       const buildinfoFileName = 'build.info';
       const tmpFile = `${entry.branchName}_${entry.buildName}.buildinfo`;
 
+      await fse.ensureDir(localSettings.libraryPath);
       await ftpClient.downloadTo(
         path.join(localSettings.libraryPath, tmpFile),
         `${ftpConfig.path}/${entry.buildName}/${buildinfoFileName}`,
         0
       );
 
+      await fse.ensureDir(localSettings.libraryPath);
       const stringContent = await fs.promises.readFile(path.join(localSettings.libraryPath, tmpFile), {
         encoding: 'utf8',
         flag: 'r'

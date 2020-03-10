@@ -47,7 +47,15 @@ export type PlaytestLocalState = PlaytestBaseState & {
   state: ELocalState;
 };
 
+export enum EDownloadState {
+  Idle,
+  Downloading,
+  Error,
+  Success
+}
+
 export type PlaytestDownloadState = PlaytestBaseState & {
+  state: EDownloadState;
   downloadedBytes: number;
   totalBytes: number;
   avgSpeed: number;

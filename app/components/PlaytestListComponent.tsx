@@ -18,7 +18,7 @@ export default function PlaytestListComponent() {
     (state: D1RootState) => state.playtestsProvider.providerState
   );
 
-  const ftpConfig = useSelector((state: D1RootState) => state.ftpConfig);
+  const { ftpConfig, localSettings } = useSelector((state: D1RootState) => state);
 
   const dispatch = useDispatch<D1Action>();
 
@@ -31,6 +31,13 @@ export default function PlaytestListComponent() {
   }, [ftpConfig]);
 
   useEffect(() => {
+    if (!ftpConfig.bIsLoading) {
+      dispatch(fetchPlaytestsLocalBranches());
+      dispatch(updateRuntimeState());
+    }
+  }, [localSettings]);
+
+  useEffect(() => {
     const timerHandle = setInterval(() => {
       dispatch(updateRuntimeState());
     }, 500);
@@ -38,7 +45,7 @@ export default function PlaytestListComponent() {
     return () => {
       clearInterval(timerHandle);
     };
-  });
+  }, [localSettings]);
 
   const getBuildComponents = () => {
     if (providerState.bIsLoading) {
