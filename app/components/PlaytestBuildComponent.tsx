@@ -170,7 +170,7 @@ const BuildComponent: React.FC<Props> = props => {
         !remoteState.bPendingUpdate &&
         localStateValue !== ELocalState.PendingState &&
         bIsSelected &&
-        selectedEntryState === ESelectedState.WantToDownload
+        selectedEntryState !== ESelectedState.DownloadedOnce
       ) {
         timeoutHandle = setTimeout(() => {
           if (
@@ -179,7 +179,7 @@ const BuildComponent: React.FC<Props> = props => {
             remoteState.bExtenedInfoSet &&
             !remoteState.bPendingUpdate &&
             bIsSelected &&
-            selectedEntryState === ESelectedState.WantToDownload
+            selectedEntryState !== ESelectedState.DownloadedOnce
           ) {
             if (
               localStateValue === ELocalState.Offline &&
