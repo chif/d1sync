@@ -1,26 +1,17 @@
-// @flow
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Badge, Button, Card, ProgressBar, Spinner } from 'react-bootstrap';
+import { Badge, Button, Card, Spinner } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faTrash,
-  faCloudDownloadAlt,
-  faGamepad,
-  faServer,
-  faCodeBranch,
-  faTimes
-} from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faGamepad, faServer, faCodeBranch, faTimes, faDownload } from '@fortawesome/free-solid-svg-icons';
 import ContentLoader from 'react-content-loader';
 import { useSelector, useDispatch } from 'react-redux';
 import { createSelector } from 'reselect';
-import filesize from 'filesize';
 import seedrandom from 'seedrandom';
+import { DownloadProgressComponent } from './DownloadProgressComponent';
 import { D1RootState } from '../reducers/types';
 import {
   PlaytestBaseState,
   ELocalState,
   ESelectedState,
-  PlaytestRuntimeState,
   EPlaytestRuntimeState,
   EDownloadState
 } from '../reducers/playtestTypes';
@@ -33,6 +24,7 @@ import {
   stopServer,
   selectPathAndDownloadPlaytestBuild
 } from '../actions/playtestActions';
+import { selectMyRemoteEntry } from './StateSelectors';
 
 type Props = {
   branchName: string;
@@ -80,32 +72,6 @@ const cardLoader = (linesCount = 1, seed = 'd1') => {
   );
 };
 
-const selectMyRemoteEntry = createSelector(
-  (inEntry: PlaytestBaseState = {}) => inEntry,
-  (rootState: D1RootState = {}) => rootState.playtestsProvider.playtests,
-  (rootState: D1RootState = {}) => rootState.playtestsProvider.localState,
-  (rootState: D1RootState = {}) => rootState.playtestsProvider.downloadState,
-  (rootState: D1RootState = {}) => rootState.playtestsProvider.runtimeState,
-  (baseEntry, remoteStates, localStates, downloadStates, runtimeStates) => ({
-    remoteState: remoteStates.find(
-      remoteEntry => remoteEntry.buildName === baseEntry.buildName && remoteEntry.branchName === baseEntry.branchName
-    ),
-    localState: localStates.find(
-      localEntry => localEntry.branchName === baseEntry.branchName && localEntry.buildName === baseEntry.buildName
-    ),
-    downloadState: downloadStates.find(
-      downloadEntry =>
-        downloadEntry.branchName === baseEntry.branchName && downloadEntry.buildName === baseEntry.buildName
-    ) || { downloadedBytes: 0, totalBytes: 0, state: EDownloadState.Idle },
-    runtimeState:
-      runtimeStates.find(
-        runtimeEntry =>
-          runtimeEntry.branchName === baseEntry.branchName && runtimeEntry.buildName === baseEntry.buildName
-      ) ||
-      ({ bClientState: EPlaytestRuntimeState.Idle, bServerState: EPlaytestRuntimeState.Idle } as PlaytestRuntimeState)
-  })
-);
-
 const selectIsSelected = createSelector(
   (inEntry: PlaytestBaseState = {}) => inEntry,
   (rootState: D1RootState = {}) => rootState.playtestsProvider.selectedEntry,
@@ -122,7 +88,9 @@ const BuildComponent: React.FC<Props> = props => {
     selectMyRemoteEntry({ ...state, branchName, buildName })
   );
 
-  const { state: selectedEntryState } = useSelector((state: D1RootState) => state.playtestsProvider.selectedEntry);
+  const { state: selectedEntryState, args: selectedEntryArgs } = useSelector(
+    (state: D1RootState) => state.playtestsProvider.selectedEntry
+  );
 
   const bIsSelected = useSelector((state: D1RootState) => selectIsSelected({ ...state, branchName, buildName }));
 
@@ -143,7 +111,7 @@ const BuildComponent: React.FC<Props> = props => {
   });
 
   const startClientCallback = useCallback(() => {
-    dispatch(launchClient(localState));
+    dispatch(launchClient(localState, bIsSelected ? selectedEntryArgs : []));
   });
 
   const startServerCallback = useCallback(() => {
@@ -165,7 +133,6 @@ const BuildComponent: React.FC<Props> = props => {
   }, [ftpConfig, remoteState]);
 
   const myRef = useRef(null);
-  const tooltipTargetRef = useRef(null);
   const serverIconRef = useRef(null);
 
   useEffect(() => {
@@ -196,7 +163,7 @@ const BuildComponent: React.FC<Props> = props => {
               !(downloadState.downloadedBytes > 0) &&
               !(downloadState.totalBytes > 0)
             ) {
-              downloadCallback();
+              // nop;
             }
 
             if (myRef && myRef.current) {
@@ -232,33 +199,12 @@ const BuildComponent: React.FC<Props> = props => {
   };
 
   const getDownloadProgress = () => {
-    const { totalBytes, downloadedBytes, avgSpeed } = downloadState;
-    if (totalBytes === 0 && downloadedBytes === 0) {
-      return (
-        <div>
-          <ProgressBar animated now={100} />
-        </div>
-      );
-    }
-
-    if (totalBytes === 0 || downloadedBytes === 0 || downloadedBytes >= totalBytes) {
-      return (
-        <div>
-          <ProgressBar animated now={100} />
-          <Badge variant="warning">{filesize(totalBytes)}</Badge>
-        </div>
-      );
-    }
-
-    const formatMbit = bytes => `${((bytes / 8) * 1e-6).toFixed(1)} Mbs`;
-
-    const donwloadProgress = (downloadedBytes / totalBytes) * 100;
     return (
-      <div>
-        <ProgressBar now={donwloadProgress} ref={tooltipTargetRef} />
-        <Badge variant="secondary">{filesize(totalBytes)}</Badge>
-        <Badge variant="warning">{formatMbit(avgSpeed)}</Badge>
-      </div>
+      <DownloadProgressComponent
+        avgSpeed={downloadState.avgSpeed}
+        downloadedBytes={downloadState.downloadedBytes}
+        totalBytes={downloadState.totalBytes}
+      />
     );
   };
 
@@ -267,7 +213,7 @@ const BuildComponent: React.FC<Props> = props => {
       return (
         <Button className="mr-2" variant="outline-warning" onClick={stopClientCallback}>
           <FontAwesomeIcon className="mr-1" icon={faTimes} />
-          Client
+          {`Client${bIsSelected ? selectedEntryArgs.join(' ') : ''}`}
         </Button>
       );
     }
@@ -329,7 +275,7 @@ const BuildComponent: React.FC<Props> = props => {
       case ELocalState.Offline:
         return (
           <Button className="mr-2" variant="primary" onClick={downloadCallback}>
-            <FontAwesomeIcon className="mr-1" icon={faCloudDownloadAlt} />
+            <FontAwesomeIcon className="mr-1" icon={faDownload} />
             Download
           </Button>
         );

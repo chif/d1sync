@@ -9,10 +9,9 @@
  * `./app/main.prod.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, Menu, Tray } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
-import MenuBuilder from './menu';
 
 const DEEP_LINK_PROTOCOL = 'd1';
 const DEEP_LINK_PREFIX = `${DEEP_LINK_PROTOCOL}://`;
@@ -26,6 +25,7 @@ export default class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let tray: Tray | null = null;
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -64,8 +64,6 @@ if (gotTheLock) {
     if (process.platform === 'win32') {
       // Keep only command line / deep linked arguments
       const deeplinkingUrl = getDeeplink(argv);
-      console.log('second instance!!');
-      console.log(deeplinkingUrl);
       if (deeplinkingUrl) {
         mainWindow.webContents.send('browseTo', deeplinkingUrl);
       }
@@ -128,12 +126,34 @@ const createWindow = async () => {
     mainWindow = null;
   });
 
-  const menuBuilder = new MenuBuilder(mainWindow);
-  menuBuilder.buildMenu();
-
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
+};
+
+const activateApplication = () => {
+  if (mainWindow === null) {
+    createWindow();
+  }
+};
+
+const createTray = async () => {
+  tray = new Tray('resources/icon.png');
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Show App',
+      click: activateApplication
+    },
+    {
+      label: 'Quit',
+      click: () => {
+        app.quit();
+      }
+    }
+  ]);
+
+  tray.setToolTip('d1playtester');
+  tray.setContextMenu(contextMenu);
 };
 
 /**
@@ -141,19 +161,16 @@ const createWindow = async () => {
  */
 
 app.on('window-all-closed', () => {
-  // Respect the OSX convention of having the application in memory even
-  // after all windows have been closed
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  app.quit();
 });
 
-app.on('ready', createWindow);
+app.on('ready', () => {
+  createTray();
+  createWindow();
+});
 
 app.on('activate', () => {
-  // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (mainWindow === null) createWindow();
+  activateApplication();
 });
 
 if (!app.isDefaultProtocolClient(DEEP_LINK_PROTOCOL)) {

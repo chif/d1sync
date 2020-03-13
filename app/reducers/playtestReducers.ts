@@ -15,7 +15,7 @@ import {
   ESelectedState,
   PlaytestRuntimeState
 } from './playtestTypes';
-import { FtpConfig, LocalSettings } from './types';
+import { FtpConfig, LocalSettings, LocalDriveInfo } from './types';
 import {
   PLAYTEST_TEST,
   FTP_CONFIG_LOAD_START,
@@ -31,7 +31,8 @@ import {
   RANDOM_SEED_SET,
   PLAYTEST_DOWNLOAD_STATE_SET,
   PLAYTEST_SELECTED_ENTRY_SET,
-  PLAYTEST_RUNTIME_STATE_SET
+  PLAYTEST_RUNTIME_STATE_SET,
+  LOCAL_DRIVE_INFO_SET
 } from './actionTypes';
 
 export function setRandomSeed(state: number, action: D1Action) {
@@ -58,6 +59,20 @@ export function localSettings(state: LocalSettings, action: D1Action) {
         });
       }
       return state;
+  }
+}
+
+export function localDriveInfo(state: LocalDriveInfo, action: D1Action) {
+  switch (action.type) {
+    case LOCAL_SETTINGS_UPDATE_LIBRARY_PATH:
+      return { additionalSpaceNeeded: 0, bPendingUpdate: true, spaceAvailable: 0 };
+    case LOCAL_DRIVE_INFO_SET: {
+      const myCopy = { ...action.payload } as LocalDriveInfo;
+      myCopy.bPendingUpdate = false;
+      return myCopy;
+    }
+    default:
+      return state || { additionalSpaceNeeded: 0, bPendingUpdate: true, spaceAvailable: 0 };
   }
 }
 

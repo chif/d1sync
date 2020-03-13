@@ -1,15 +1,16 @@
+import { promisify } from 'util';
 import electron from 'electron';
 import { snapshot } from 'process-list';
 import { spawn } from 'child_process';
 import fs, { Dirent } from 'fs';
-import rimraf from 'rimraf';
 import fse from 'fs-extra';
+import filesystem from 'fs-filesystem';
 import path from 'path';
 import { Client as FtpClient, FileInfo } from 'basic-ftp';
 import { ProgressInfo } from 'basic-ftp/dist/ProgressTracker';
 import sleep from 'await-sleep';
 import { shallowEqual } from 'react-redux';
-import { Dispatch, GetState } from '../reducers/types';
+import { Dispatch, GetState, LocalDriveInfo } from '../reducers/types';
 import {
   PLAYTEST_TEST,
   PLAYTEST_TEST_TWO,
@@ -25,7 +26,8 @@ import {
   RANDOM_SEED_SET,
   PLAYTEST_DOWNLOAD_STATE_SET,
   PLAYTEST_SELECTED_ENTRY_SET,
-  PLAYTEST_RUNTIME_STATE_SET
+  PLAYTEST_RUNTIME_STATE_SET,
+  LOCAL_DRIVE_INFO_SET
 } from '../reducers/actionTypes';
 import {
   ELocalState,
@@ -37,11 +39,12 @@ import {
   EPlaytestRuntimeState,
   EDownloadState
 } from '../reducers/playtestTypes';
+import downloadPackedPlaytestBuild from './ftpPackedActions';
 
 const DO_NOT_GC_ME_PLEASE = [];
 let staticFtpInstances = 0;
 
-export function reportError() {}
+function reportError() {}
 
 export function ensurePathExists();
 
@@ -60,10 +63,90 @@ export function setSelectedEntry(entry: PlaytestBaseState) {
   };
 }
 
-export function setDownloadState(state: PlaytestDownloadState) {
+function setDownloadState(state: PlaytestDownloadState) {
   return {
     type: PLAYTEST_DOWNLOAD_STATE_SET,
     payload: state
+  };
+}
+
+export function updateLocalDriveInfo() {
+  return async (dispatch: Dispatch, getState: GetState) => {
+    const { libraryPath } = getState().localSettings;
+    // totally safe
+    const driveLetter = libraryPath.substr(0, 2);
+
+    const asyncFilesystem = promisify(filesystem);
+
+    type FileSystemVolume = {
+      id: string;
+      node: string;
+      whole: boolean;
+      parent: string;
+      name: string;
+      description: string;
+      blockSize: number;
+      blocks: number;
+      readOnly: boolean;
+      mounted: boolean;
+      mountPoint: boolean;
+      partitionType: string;
+      fs: string;
+      space: {
+        total: number;
+        available: number;
+        used: number;
+      };
+    };
+
+    type FileSystemDevice = {
+      id: string;
+      node: string;
+      whole: boolean;
+      parent: string;
+      name: string;
+      size: integer;
+      description: string;
+      protocol: string;
+      blockSize: integer;
+      readOnly: boolean;
+      removable: boolean;
+      volumes: Array<FileSystemVolume>;
+    };
+
+    const emptyPayload: LocalDriveInfo = {
+      additionalSpaceNeeded: 0,
+      bPendingUpdate: true,
+      spaceAvailable: 0
+    };
+
+    try {
+      const fileSystemResult = await asyncFilesystem(driveLetter);
+
+      const keys = Object.keys(fileSystemResult.devices);
+      if (keys.length === 0) {
+        throw new Error('drive not found');
+      }
+
+      const device = fileSystemResult.devices[keys[0]] as FileSystemDevice;
+      const volume = device.volumes.find(currentVolume => currentVolume.id === driveLetter);
+      if (!volume) {
+        throw new Error('volume not found');
+      }
+
+      dispatch({
+        type: LOCAL_DRIVE_INFO_SET,
+        payload: {
+          spaceAvailable: volume.space.available,
+          bPendingUpdate: false,
+          additionalSpaceNeeded: Math.max(0, 5 * 1024 * 1024 * 1024 - volume.space.available)
+        } as LocalDriveInfo
+      });
+    } catch (error) {
+      reportError(error);
+
+      dispatch({ type: LOCAL_DRIVE_INFO_SET, payload: emptyPayload });
+    }
   };
 }
 
@@ -75,11 +158,84 @@ export function selectLibraryPath() {
     });
 
     if (!dir.canceled) {
-      await fse.ensureDir(dir.filePaths[0]);
+      let selectedDir = dir.filePaths[0];
+      if (selectedDir && selectedDir.length < 4) {
+        selectedDir = path.join(selectedDir, 'd1playtests');
+      }
+      await fse.ensureDir(selectedDir);
       dispatch({
         type: LOCAL_SETTINGS_UPDATE_LIBRARY_PATH,
-        payload: dir.filePaths[0]
+        payload: selectedDir
       });
+    }
+  };
+}
+
+export function autoSelectLibraryPath() {
+  return async (dispatch: Dispatch) => {
+    type FileSystemVolume = {
+      id: string;
+      node: string;
+      whole: boolean;
+      parent: string;
+      name: string;
+      description: string;
+      blockSize: number;
+      blocks: number;
+      readOnly: boolean;
+      mounted: boolean;
+      mountPoint: boolean;
+      partitionType: string;
+      fs: string;
+      space: {
+        total: number;
+        available: number;
+        used: number;
+      };
+    };
+
+    type FileSystemDevice = {
+      id: string;
+      node: string;
+      whole: boolean;
+      parent: string;
+      name: string;
+      size: integer;
+      description: string;
+      protocol: string;
+      blockSize: integer;
+      readOnly: boolean;
+      removable: boolean;
+      volumes: Array<FileSystemVolume>;
+    };
+
+    try {
+      const asyncFilesystem = promisify(filesystem);
+      const fileSystemResult = await asyncFilesystem();
+
+      const keys = Object.keys(fileSystemResult.devices);
+      if (keys.length === 0) {
+        throw new Error('drive not found');
+      }
+
+      const hugeVolume = keys
+        .map(key => fileSystemResult.devices[key])
+        .filter((device: FileSystemDevice) => device.description === 'Local Fixed Disk')
+        .flatMap(device => device.volumes)
+        .reduce((prev, current) => (current?.space.available > prev?.space.available ? current : prev));
+
+      if (hugeVolume) {
+        const newDir = path.join(hugeVolume.id, 'd1playtests');
+        await fse.ensureDir(newDir);
+        await dispatch({
+          type: LOCAL_SETTINGS_UPDATE_LIBRARY_PATH,
+          payload: newDir
+        });
+
+        await dispatch(updateLocalDriveInfo());
+      }
+    } catch (error) {
+      reportError(error);
     }
   };
 }
@@ -90,7 +246,7 @@ export function loadFtpConfig() {
     const configPath = '\\\\m1fsg5.mail.msk\\Games2$\\AT\\F1\\D1\\playtester.json';
 
     try {
-      const data = await fs.promises.readFile(configPath, {
+      const data = await fse.readFile(configPath, {
         encoding: 'utf8',
         flag: 'r'
       });
@@ -119,7 +275,7 @@ export function fetchPlaytestsLocalBranches() {
       });
 
       try {
-        await fs.promises.access(path.join(buildPath, 'build.info'), fs.constants.R_OK);
+        await fse.access(path.join(buildPath, 'build.info'), fs.constants.R_OK);
       } catch (error) {
         dispatch({
           type: PLAYTEST_LOCAL_STATE_LOAD_START,
@@ -144,16 +300,16 @@ export function fetchPlaytestsLocalBranches() {
     };
 
     const fetchBuilds = async (buildsPath: string) => {
-      const builds = await fs.promises.readdir(buildsPath, {
+      const builds = await fse.readdir(buildsPath, {
         withFileTypes: true
       });
       return builds
-        .filter((build: Dirent) => build.isDirectory)
+        .filter((build: Dirent) => build.isDirectory && parseInt(build.name, 10) > 0)
         .map(async (build: Dirent) => updateBuild(path.join(buildsPath, build.name)));
     };
 
     const fetchBranches = async (branchesPath: string) => {
-      const branches = await fs.promises.readdir(branchesPath, {
+      const branches = await fse.readdir(branchesPath, {
         withFileTypes: true
       });
 
@@ -167,6 +323,13 @@ export function fetchPlaytestsLocalBranches() {
     const { localSettings } = getState();
 
     dispatch({ type: PLAYTEST_LOCAL_STATE_SET_LIST_START });
+    if (!localSettings.libraryPath) {
+      throw new Error('invalid library path');
+    }
+
+    if (localSettings.libraryPath.length < 4) {
+      throw new Error('can not use drive root as library path');
+    }
     await fse.ensureDir(localSettings.libraryPath);
     await fetchBranches(localSettings.libraryPath);
   };
@@ -275,7 +438,6 @@ export function downloadPlaytestBuild(build: PlaytestBaseState) {
       await ftpClient.downloadToDir(
         path.join(localSettings.libraryPath, build.branchName, build.buildName),
         `${ftpConfig.path}/${build.buildName}`
-        // `${ftpConfig.path}/${build.branchName}/${build.buildName}`
       );
 
       dispatch(
@@ -300,8 +462,6 @@ export function downloadPlaytestBuild(build: PlaytestBaseState) {
       );
     }
     ftpClient.close();
-
-    await dispatch(fetchPlaytestsLocalBranches());
   };
 }
 
@@ -311,7 +471,9 @@ export function selectPathAndDownloadPlaytestBuild(build: PlaytestBaseState) {
       await dispatch(selectLibraryPath());
     }
     if (getState().localSettings.bPathWasSetByUser) {
-      await dispatch(downloadPlaytestBuild(build));
+      // await dispatch(downloadPlaytestBuild(build));
+      await dispatch(downloadPackedPlaytestBuild(build));
+      await dispatch(fetchPlaytestsLocalBranches());
     }
   };
 }
@@ -331,22 +493,13 @@ export function deleteLocalBuild(build: PlaytestBaseState) {
     });
 
     try {
-      await fs.promises.access(
+      await fse.access(
         path.join(localSettings.libraryPath, build.branchName, build.buildName, 'build.info'),
         fs.constants.R_OK
       );
 
-      rimraf(
-        path.join(localSettings.libraryPath, build.branchName, build.buildName),
-        {
-          maxBusyTries: 5,
-          emfileWait: 1000,
-          glob: false
-        },
-        () => {
-          dispatch(fetchPlaytestsLocalBranches());
-        }
-      );
+      await fse.remove(path.join(localSettings.libraryPath, build.branchName, build.buildName));
+      dispatch(fetchPlaytestsLocalBranches());
     } catch (error) {
       reportError(error);
       dispatch(fetchPlaytestsLocalBranches());
@@ -389,12 +542,12 @@ export function fetchPlaytestRemoteEntryFromFtp(entry: PlaytestBaseState) {
       );
 
       await fse.ensureDir(localSettings.libraryPath);
-      const stringContent = await fs.promises.readFile(path.join(localSettings.libraryPath, tmpFile), {
+      const stringContent = await fse.readFile(path.join(localSettings.libraryPath, tmpFile), {
         encoding: 'utf8',
         flag: 'r'
       });
 
-      await fs.promises.unlink(path.join(localSettings.libraryPath, tmpFile));
+      await fse.unlink(path.join(localSettings.libraryPath, tmpFile));
 
       const remoteEntry: PlaytestRemoteState = { ...entry, playtestDesc: stringContent };
       dispatch({ type: PLAYTEST_REMOTE_ENTRY_SET, payload: remoteEntry });
@@ -519,12 +672,12 @@ export function updateRuntimeState() {
   };
 }
 
-export function startApp(cmd: string, argv0: string) {
+export function startApp(cmd: string, args?: string[]) {
   return async (dispatch: Dispatch) => {
-    spawn(path.basename(cmd), {
+    spawn(path.basename(cmd), args, {
       cwd: path.dirname(cmd),
       detached: true,
-      argv0
+      windowsVerbatimArguments: true
     });
 
     dispatch(updateRuntimeState());
@@ -553,9 +706,17 @@ export function stopApp(partialPath: string) {
 }
 
 // TODO: переделать разахрдоженные пути. или нет
-export function launchClient(entry: PlaytestBaseState) {
+export function launchClient(entry: PlaytestBaseState, args: string[]) {
   return async (dispatch: Dispatch, getState: GetState) => {
     const { localSettings } = getState();
+
+    const runtimeState = getState().playtestsProvider.runtimeState.find(
+      runtimeEntry => runtimeEntry.branchName === entry.branchName && runtimeEntry.buildName === entry.buildName
+    );
+
+    if (runtimeState && runtimeState.bClientState === EPlaytestRuntimeState.Running) {
+      return;
+    }
 
     const pathToClientExeDevelopment = path.join(
       localSettings.libraryPath,
@@ -567,7 +728,7 @@ export function launchClient(entry: PlaytestBaseState) {
       'Devious.exe'
     );
 
-    dispatch(startApp(pathToClientExeDevelopment, ''));
+    dispatch(startApp(pathToClientExeDevelopment, args));
   };
 }
 
@@ -606,7 +767,7 @@ export function launchServer(entry: PlaytestBaseState) {
       'DeviousServer.exe'
     );
 
-    dispatch(startApp(pathToServerExeDevelopment, '-log'));
+    dispatch(startApp(pathToServerExeDevelopment, ['-log']));
   };
 }
 

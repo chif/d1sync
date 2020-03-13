@@ -6,6 +6,12 @@ export type LocalSettings = {
   bPathWasSetByUser: boolean;
 };
 
+export type LocalDriveInfo = {
+  bPendingUpdate: boolean;
+  additionalSpaceNeeded: number;
+  spaceAvailable: number;
+};
+
 export type FtpConfig = {
   url: string;
   path: string;
@@ -18,6 +24,7 @@ export type D1RootState = {
   playtestsProvider: DPlaytestsProvider;
   ftpConfig: FtpConfig;
   localSettings: LocalSettings;
+  localDriveInfo: LocalDriveInfo;
   randomSeed: number;
 };
 

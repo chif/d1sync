@@ -1004,7 +1004,7 @@
     pirates "^4.0.0"
     source-map-support "^0.5.16"
 
-"@babel/runtime@^7.1.2", "@babel/runtime@^7.4.0", "@babel/runtime@^7.4.2", "@babel/runtime@^7.4.5", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.3", "@babel/runtime@^7.7.2", "@babel/runtime@^7.7.7", "@babel/runtime@^7.8.4":
+"@babel/runtime@^7.1.2", "@babel/runtime@^7.3.1", "@babel/runtime@^7.4.0", "@babel/runtime@^7.4.2", "@babel/runtime@^7.4.5", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.3", "@babel/runtime@^7.7.2", "@babel/runtime@^7.7.7", "@babel/runtime@^7.8.4":
   version "7.8.7"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.8.7.tgz#8fefce9802db54881ba59f90bb28719b4996324d"
   integrity sha512-+AATMUFppJDw6aiR5NVPHqIQBlV/Pj8wY/EZH+lmvRdUo9xBaz/rF3alAwFJQavvKfeOlPE7oaaDHVbcySbCsg==
@@ -1414,6 +1414,93 @@
   dependencies:
     "@nodelib/fs.scandir" "2.1.3"
     fastq "^1.6.0"
+
+"@react-spring/addons@^9.0.0-beta.33":
+  version "9.0.0-beta.33"
+  resolved "https://registry.yarnpkg.com/@react-spring/addons/-/addons-9.0.0-beta.33.tgz#0948301c271758f7a52aa39a1d96d4db65c6dd9b"
+  integrity sha512-/QJ5vcq54oljT1n4dSx9maYGaIKzz5WRuKGa12fhLD2JsYo9syTc9S3VH4qmAM4pkbggUQdiaA/AJWack4NF7A==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+    "@react-spring/animated" "^9.0.0-beta.33"
+    "@react-spring/core" "^9.0.0-beta.33"
+    use-memo-one "^1.1.0"
+
+"@react-spring/animated@^9.0.0-beta.33":
+  version "9.0.0-beta.33"
+  resolved "https://registry.yarnpkg.com/@react-spring/animated/-/animated-9.0.0-beta.33.tgz#5481278056e771466137f4d48c2efbf3277faad3"
+  integrity sha512-0ecIXTLjvUuplQgUOr3fhXzHuVcCuVi4gLAEG74m/OcXZ8JZ0DuQCwdIT2TNJYaWX1pOG0OstT3bJ8KN+Ji/BQ==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+    "@react-spring/shared" "^9.0.0-beta.33"
+    tiny-invariant "^1.0.4"
+
+"@react-spring/core@^9.0.0-beta.33":
+  version "9.0.0-beta.33"
+  resolved "https://registry.yarnpkg.com/@react-spring/core/-/core-9.0.0-beta.33.tgz#3b894fb9fbc3d0dde5e4cdfc8eb52935e8cea9bf"
+  integrity sha512-fIUGsAsCmZSBtucfE3zf2XTBjdTYbzdcblZyeo1/pUGW7ehjB85x2oNj7o6JQ603+elsTJ9k7POiYI5/wn1N3A==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+    "@react-spring/animated" "^9.0.0-beta.33"
+    "@react-spring/shared" "^9.0.0-beta.33"
+    use-memo-one "^1.1.0"
+
+"@react-spring/konva@^9.0.0-beta.33":
+  version "9.0.0-beta.33"
+  resolved "https://registry.yarnpkg.com/@react-spring/konva/-/konva-9.0.0-beta.33.tgz#2a116aee5a32ab4cde1b5eef1c10b533183f6518"
+  integrity sha512-9tfrbd/j3ZZHu8Vjpx86vAkLZ3lQLv9VEgvDIQSpzUzQOUojeQPdbB/xVKSoqR2hWR0XMV2IurD2e6rolZv7fQ==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+    "@react-spring/animated" "^9.0.0-beta.33"
+    "@react-spring/core" "^9.0.0-beta.33"
+    "@react-spring/shared" "^9.0.0-beta.33"
+
+"@react-spring/native@^9.0.0-beta.33":
+  version "9.0.0-beta.33"
+  resolved "https://registry.yarnpkg.com/@react-spring/native/-/native-9.0.0-beta.33.tgz#0e27f34acbb395e2f355c9f91fc8010fbd1c4967"
+  integrity sha512-x2Wlcr0JSxc2O/6QsOut4aR3VOVYP8QOLBNXA+5tgQGK5yfkTaDoXTZC8vD/uX3dBsY41FUr2x9a+LOqvTfziQ==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+    "@react-spring/animated" "^9.0.0-beta.33"
+    "@react-spring/core" "^9.0.0-beta.33"
+    "@react-spring/shared" "^9.0.0-beta.33"
+
+"@react-spring/shared@^9.0.0-beta.33":
+  version "9.0.0-beta.33"
+  resolved "https://registry.yarnpkg.com/@react-spring/shared/-/shared-9.0.0-beta.33.tgz#8630cf68f79a7b12f075345bdf23a47dff6ed877"
+  integrity sha512-oGalrGtIg7ZMn9VW5PzLFMDAa8vH5V0XIeC4WFk7JB4hBfhxx6yzPwjMxSJfRrt/Q+WuS2cPoR5qN0RpH+fJOA==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+    tiny-invariant "^1.0.4"
+
+"@react-spring/three@^9.0.0-beta.33":
+  version "9.0.0-beta.33"
+  resolved "https://registry.yarnpkg.com/@react-spring/three/-/three-9.0.0-beta.33.tgz#556f8ef92397c3b9bec0f92c13acc9c7d7c6995d"
+  integrity sha512-ouTN6w1VMjN2V04JGSG7eliesBgOqPmplrETeUSc3gAl3unv9LzqRDK/NGan0GwvsCx98BUycKYD26wWAAu1lA==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+    "@react-spring/animated" "^9.0.0-beta.33"
+    "@react-spring/core" "^9.0.0-beta.33"
+    "@react-spring/shared" "^9.0.0-beta.33"
+
+"@react-spring/web@^9.0.0-beta.34":
+  version "9.0.0-beta.34"
+  resolved "https://registry.yarnpkg.com/@react-spring/web/-/web-9.0.0-beta.34.tgz#d71fef11416a6be8b07d22faea16c8597e9487f3"
+  integrity sha512-K5kF2e0BgUE6ehY81NF9C8eYiopFx9YrWQvxRXVUbXUYOgLjZ5JsKFlAbM52PAl3AgP5c1pMP9ir6yzn144nig==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+    "@react-spring/animated" "^9.0.0-beta.33"
+    "@react-spring/core" "^9.0.0-beta.33"
+    "@react-spring/shared" "^9.0.0-beta.33"
+
+"@react-spring/zdog@^9.0.0-beta.33":
+  version "9.0.0-beta.33"
+  resolved "https://registry.yarnpkg.com/@react-spring/zdog/-/zdog-9.0.0-beta.33.tgz#0f49d72bd56c9d9c797ac0390b141d6f9c7eafbe"
+  integrity sha512-cGxNJxZxbKpaagpelTxdOLOxJkdUEjmiXzrePu0dAgO58WTGcya9XWcI0ntKZo1/8T6E2qR29j0J59MDeHkAZQ==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+    "@react-spring/animated" "^9.0.0-beta.33"
+    "@react-spring/core" "^9.0.0-beta.33"
+    "@react-spring/shared" "^9.0.0-beta.33"
 
 "@restart/context@^2.1.4":
   version "2.1.4"
@@ -3264,6 +3351,15 @@ babel-plugin-transform-strict-mode@^6.24.1:
     babel-runtime "^6.22.0"
     babel-types "^6.24.1"
 
+babel-polyfill@^6.26.0:
+  version "6.26.0"
+  resolved "https://registry.yarnpkg.com/babel-polyfill/-/babel-polyfill-6.26.0.tgz#379937abc67d7895970adc621f284cd966cf2153"
+  integrity sha1-N5k3q8Z9eJWXCtxiHyhM2WbPIVM=
+  dependencies:
+    babel-runtime "^6.26.0"
+    core-js "^2.5.0"
+    regenerator-runtime "^0.10.5"
+
 babel-preset-env@^1.1.8:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/babel-preset-env/-/babel-preset-env-1.7.0.tgz#dea79fa4ebeb883cd35dab07e260c1c9c04df77a"
@@ -3494,6 +3590,11 @@ bfj@^6.1.1:
     hoopy "^0.1.4"
     tryer "^1.0.1"
 
+big-integer@^1.6.17:
+  version "1.6.48"
+  resolved "https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.48.tgz#8fd88bd1632cba4a1c8c3e3d7159f08bb95b4b9e"
+  integrity sha512-j51egjPa7/i+RdiRuJbPdJ2FIUYYPhvYLjzoYbcMMm62ooO6F94fETG4MTs46zPAF9Brs04OajboA/qTGuz78w==
+
 big.js@^3.1.3:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/big.js/-/big.js-3.2.0.tgz#a5fc298b81b9e0dca2e458824784b65c52ba588e"
@@ -3513,6 +3614,14 @@ binary-extensions@^1.0.0:
   version "1.13.1"
   resolved "https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-1.13.1.tgz#598afe54755b2868a5330d2aff9d4ebb53209b65"
   integrity sha512-Un7MIEDdUC5gNpcGDV97op1Ywk748MpHcFTHoYs6qnj1Z3j7I53VG3nwZhKzoBZmbdRNnb6WRdFlwl7tSDuZGw==
+
+binary@~0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/binary/-/binary-0.3.0.tgz#9f60553bc5ce8c3386f3b553cff47462adecaa79"
+  integrity sha1-n2BVO8XOjDOG87VTz/R0Yq3sqnk=
+  dependencies:
+    buffers "~0.1.1"
+    chainsaw "~0.1.0"
 
 bindings@^1.5.0:
   version "1.5.0"
@@ -3543,10 +3652,15 @@ bluebird-lst@^1.0.9:
   dependencies:
     bluebird "^3.5.5"
 
-bluebird@^3.5.0, bluebird@^3.5.5:
+bluebird@^3.5.0, bluebird@^3.5.1, bluebird@^3.5.5:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
   integrity sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==
+
+bluebird@~3.4.1:
+  version "3.4.7"
+  resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.4.7.tgz#f72d760be09b7f76d08ed8fae98b289a8d05fab3"
+  integrity sha1-9y12C+Cbf3bQjtj66Ysomo0F+rM=
 
 bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.1.1, bn.js@^4.4.0:
   version "4.11.8"
@@ -3786,6 +3900,11 @@ buffer-from@^1.0.0:
   resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.1.tgz#32713bc028f75c02fdb710d7c7bcec1f2c6070ef"
   integrity sha512-MQcXEUbCKtEo7bhqEs6560Hyd4XaovZlO/k9V3hjVUF/zwW7KBVdSK4gIt/bzwS9MbR5qob+F5jusZsb0YQK2A==
 
+buffer-indexof-polyfill@~1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/buffer-indexof-polyfill/-/buffer-indexof-polyfill-1.0.1.tgz#a9fb806ce8145d5428510ce72f278bb363a638bf"
+  integrity sha1-qfuAbOgUXVQoUQznLyeLs2OmOL8=
+
 buffer-indexof@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/buffer-indexof/-/buffer-indexof-1.1.1.tgz#52fabcc6a606d1a00302802648ef68f639da268c"
@@ -3812,6 +3931,11 @@ buffer@^5.1.0:
   dependencies:
     base64-js "^1.0.2"
     ieee754 "^1.1.4"
+
+buffers@~0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/buffers/-/buffers-0.1.1.tgz#b24579c3bed4d6d396aeee6d9a8ae7f5482ab7bb"
+  integrity sha1-skV5w77U1tOWru5tmorn9Ugqt7s=
 
 builder-util-runtime@8.6.1:
   version "8.6.1"
@@ -4065,6 +4189,13 @@ chai@^4.1.2:
     get-func-name "^2.0.0"
     pathval "^1.1.0"
     type-detect "^4.0.5"
+
+chainsaw@~0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/chainsaw/-/chainsaw-0.1.0.tgz#5eab50b28afe58074d0d58291388828b5e5fbc98"
+  integrity sha1-XqtQsor+WAdNDVgpE4iCi15fvJg=
+  dependencies:
+    traverse ">=0.3.0 <0.4"
 
 chalk@2.4.2, chalk@^2.0.0, chalk@^2.0.1, chalk@^2.1.0, chalk@^2.3.0, chalk@^2.4.0, chalk@^2.4.1, chalk@^2.4.2:
   version "2.4.2"
@@ -5601,6 +5732,13 @@ dotenv@^8.2.0:
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-8.2.0.tgz#97e619259ada750eea3e4ea3e26bceea5424b16a"
   integrity sha512-8sJ78ElpbDJBHNeBzUbUVLsqKdccaa/BXF1uPTw3GrvQTBgrQrtObr2mUrE38vzYd8cEv+m/JBfDLioYcfXoaw==
 
+duplexer2@~0.1.4:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/duplexer2/-/duplexer2-0.1.4.tgz#8b12dab878c0d69e3e7891051662a32fc6bddcc1"
+  integrity sha1-ixLauHjA1p4+eJEFFmKjL8a93ME=
+  dependencies:
+    readable-stream "^2.0.2"
+
 duplexer3@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/duplexer3/-/duplexer3-0.1.4.tgz#ee01dd1cac0ed3cbc7fdbea37dc0a8f1ce002ce2"
@@ -5768,6 +5906,15 @@ electron-rebuild@^1.8.8:
     ora "^3.4.0"
     spawn-rx "^3.0.0"
     yargs "^14.2.0"
+
+electron-redux@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/electron-redux/-/electron-redux-1.4.0.tgz#f3c0b09150ddacc7771b6ef953cf23f47b900a83"
+  integrity sha512-spHEJLxpI2kBKhTKpxHNfchXIYD+W5HFstwqexkO6VY9GL3C/bOqf7HM0a598yD9rhFEKUdk5u4dD5jjo3Q/TQ==
+  dependencies:
+    debug "^3.0.0"
+    flux-standard-action "^2.0.0"
+    redux "^3.4.0"
 
 electron-store@^4.0.0:
   version "4.0.0"
@@ -6888,6 +7035,13 @@ flush-write-stream@^1.0.0:
     inherits "^2.0.3"
     readable-stream "^2.3.6"
 
+flux-standard-action@^2.0.0:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/flux-standard-action/-/flux-standard-action-2.1.1.tgz#b2e204145ea8e4294d6b0f178d8e8c416802948f"
+  integrity sha512-W86GzmXmIiTVq/dpYVd2HtTIUX9c35Iq3ao3xR6qcKtuXgbu+BDEj72op5VnEIe/kpuSbhl+I8kT1iS2hpcusw==
+  dependencies:
+    lodash "^4.17.15"
+
 follow-redirects@^1.0.0:
   version "1.10.0"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.10.0.tgz#01f5263aee921c6a54fb91667f08f4155ce169eb"
@@ -6970,6 +7124,16 @@ fs-extra@^8.1.0:
     graceful-fs "^4.2.0"
     jsonfile "^4.0.0"
     universalify "^0.1.0"
+
+fs-filesystem@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/fs-filesystem/-/fs-filesystem-2.1.2.tgz#cc0c36741aac9eb8416ab30c75bb7ae2801aba6b"
+  integrity sha512-NTX9xJSNXauZfbz8j+JFO1VLUHUF0iv5GaGM7+yTEseh+8OT+WFz+egHf0mFiEFEkvKG3iWwQ5wToKTw5271yQ==
+  dependencies:
+    babel-polyfill "^6.26.0"
+    babel-runtime "^6.26.0"
+    bluebird "^3.5.1"
+    ramda "^0.25.0"
 
 fs-minipass@^1.2.5:
   version "1.2.7"
@@ -9308,6 +9472,11 @@ linux-platform-info@^0.0.3:
   integrity sha1-La4yQ4Xmbj11W+yD+Gx77qYc64M=
   dependencies:
     os-family "^1.0.0"
+
+listenercount@~1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/listenercount/-/listenercount-1.0.1.tgz#84c8a72ab59c4725321480c975e6508342e70937"
+  integrity sha1-hMinKrWcRyUyFIDJdeZQg0LnCTc=
 
 listr-silent-renderer@^1.1.1:
   version "1.1.1"
@@ -11950,6 +12119,11 @@ railroad-diagrams@^1.0.0:
   resolved "https://registry.yarnpkg.com/railroad-diagrams/-/railroad-diagrams-1.0.0.tgz#eb7e6267548ddedfb899c1b90e57374559cddb7e"
   integrity sha1-635iZ1SN3t+4mcG5Dlc3RVnN234=
 
+ramda@^0.25.0:
+  version "0.25.0"
+  resolved "https://registry.yarnpkg.com/ramda/-/ramda-0.25.0.tgz#8fdf68231cffa90bc2f9460390a0cb74a29b29a9"
+  integrity sha512-GXpfrYVPwx3K7RQ6aYT8KPS8XViSXUVJT1ONhoKPE9VAleW42YE+U+8VEyGWt41EnEQW7gwecYJriTI0pKoecQ==
+
 randexp@0.4.6:
   version "0.4.6"
   resolved "https://registry.yarnpkg.com/randexp/-/randexp-0.4.6.tgz#e986ad5e5e31dae13ddd6f7b3019aa7c87f60ca3"
@@ -12109,6 +12283,20 @@ react-router@5.1.2, react-router@^5.1.2:
     react-is "^16.6.0"
     tiny-invariant "^1.0.2"
     tiny-warning "^1.0.0"
+
+react-spring@^9.0.0-beta.34:
+  version "9.0.0-beta.34"
+  resolved "https://registry.yarnpkg.com/react-spring/-/react-spring-9.0.0-beta.34.tgz#909fdccec45b15f317cabe0d4746e636b60e39ed"
+  integrity sha512-Ey+Zg/jS2b/uaT6MlvMLnnNZ+N16Gc6r/CAwduC1+jy9UnB/fYnMMflZPemkGVEpZ+T9ef5FvWknw4ytnGl4zw==
+  dependencies:
+    "@babel/runtime" "^7.3.1"
+    "@react-spring/addons" "^9.0.0-beta.33"
+    "@react-spring/core" "^9.0.0-beta.33"
+    "@react-spring/konva" "^9.0.0-beta.33"
+    "@react-spring/native" "^9.0.0-beta.33"
+    "@react-spring/three" "^9.0.0-beta.33"
+    "@react-spring/web" "^9.0.0-beta.34"
+    "@react-spring/zdog" "^9.0.0-beta.33"
 
 react-test-renderer@^16.0.0-0, react-test-renderer@^16.12.0:
   version "16.13.0"
@@ -12345,7 +12533,7 @@ redux-thunk@^2.3.0:
   resolved "https://registry.yarnpkg.com/redux-thunk/-/redux-thunk-2.3.0.tgz#51c2c19a185ed5187aaa9a2d08b666d0d6467622"
   integrity sha512-km6dclyFnmcvxhAcrQV2AkZmPQjzPDjgVlQtR0EQjxZPyJ0BnMf3in1ryuR8A2qU0HldVRfxYXbFSKlI3N7Slw==
 
-redux@^3.6.0:
+redux@^3.4.0, redux@^3.6.0:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/redux/-/redux-3.7.2.tgz#06b73123215901d25d065be342eb026bc1c8537b"
   integrity sha512-pNqnf9q1hI5HHZRBkj3bAngGZW/JMCmexDlOxw4XagXY2o1327nHH54LoTjiPJ0gizoqPDRqWyX/00g0hD6w+A==
@@ -12379,6 +12567,11 @@ regenerate@^1.2.1, regenerate@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/regenerate/-/regenerate-1.4.0.tgz#4a856ec4b56e4077c557589cae85e7a4c8869a11"
   integrity sha512-1G6jJVDWrt0rK99kBjvEtziZNCICAuvIPkSiUFIQxVP06RCVpq3dmDo2oi6ABpYaDYaTRr67BEhL8r1wgEZZKg==
+
+regenerator-runtime@^0.10.5:
+  version "0.10.5"
+  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.10.5.tgz#336c3efc1220adcedda2c9fab67b5a7955a33658"
+  integrity sha1-M2w+/BIgrc7dosn6tntaeVWjNlg=
 
 regenerator-runtime@^0.11.0:
   version "0.11.1"
@@ -12802,7 +12995,7 @@ rimraf@2.6.3:
   dependencies:
     glob "^7.1.3"
 
-rimraf@^3.0.0, rimraf@^3.0.2:
+rimraf@^3.0.0:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-3.0.2.tgz#f1a5402ba6220ad52cc1282bac1ae3aa49fd061a"
   integrity sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==
@@ -13131,7 +13324,7 @@ set-value@^2.0.0, set-value@^2.0.1:
     is-plain-object "^2.0.3"
     split-string "^3.0.1"
 
-setimmediate@^1.0.4:
+setimmediate@^1.0.4, setimmediate@~1.0.4:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/setimmediate/-/setimmediate-1.0.5.tgz#290cbb232e306942d7d7ea9b83732ab7856f8285"
   integrity sha1-KQy7Iy4waULX1+qbg3Mqt4VvgoU=
@@ -14407,7 +14600,7 @@ timsort@^0.3.0:
   resolved "https://registry.yarnpkg.com/timsort/-/timsort-0.3.0.tgz#405411a8e7e6339fe64db9a234de11dc31e02bd4"
   integrity sha1-QFQRqOfmM5/mTbmiNN4R3DHgK9Q=
 
-tiny-invariant@^1.0.2:
+tiny-invariant@^1.0.2, tiny-invariant@^1.0.4:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/tiny-invariant/-/tiny-invariant-1.1.0.tgz#634c5f8efdc27714b7f386c35e6760991d230875"
   integrity sha512-ytxQvrb1cPc9WBEI/HSeYYoGD0kWnGEOR8RY6KomWLBVhqz0RgTwVO9dLrGz7dC+nN9llyI7OKAgRq8Vq4ZBSw==
@@ -14548,6 +14741,11 @@ tr46@^1.0.1:
   integrity sha1-qLE/1r/SSJUZZ0zN5VujaTtwbQk=
   dependencies:
     punycode "^2.1.0"
+
+"traverse@>=0.3.0 <0.4":
+  version "0.3.9"
+  resolved "https://registry.yarnpkg.com/traverse/-/traverse-0.3.9.tgz#717b8f220cc0bb7b44e40514c22b2e8bbc70d8b9"
+  integrity sha1-cXuPIgzAu3tE5AUUwisui7xw2Lk=
 
 tree-kill@^1.1.0, tree-kill@^1.2.2:
   version "1.2.2"
@@ -14906,6 +15104,22 @@ unset-value@^1.0.0:
     has-value "^0.3.1"
     isobject "^3.0.0"
 
+unzipper@^0.10.10:
+  version "0.10.10"
+  resolved "https://registry.yarnpkg.com/unzipper/-/unzipper-0.10.10.tgz#d82d41fbdfa1f0731123eb11c2cfc028b45d3d42"
+  integrity sha512-wEgtqtrnJ/9zIBsQb8UIxOhAH1eTHfi7D/xvmrUoMEePeI6u24nq1wigazbIFtHt6ANYXdEVTvc8XYNlTurs7A==
+  dependencies:
+    big-integer "^1.6.17"
+    binary "~0.3.0"
+    bluebird "~3.4.1"
+    buffer-indexof-polyfill "~1.0.0"
+    duplexer2 "~0.1.4"
+    fstream "^1.0.12"
+    graceful-fs "^4.2.2"
+    listenercount "~1.0.1"
+    readable-stream "~2.3.6"
+    setimmediate "~1.0.4"
+
 upath@^1.1.1:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/upath/-/upath-1.2.0.tgz#8f66dbcd55a883acdae4408af8b035a5044c1894"
@@ -14978,6 +15192,11 @@ url@^0.11.0, url@~0.11.0:
   dependencies:
     punycode "1.3.2"
     querystring "0.2.0"
+
+use-memo-one@^1.1.0:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/use-memo-one/-/use-memo-one-1.1.1.tgz#39e6f08fe27e422a7d7b234b5f9056af313bd22c"
+  integrity sha512-oFfsyun+bP7RX8X2AskHNTxu+R3QdE/RC5IefMbqptmACAA/gfol1KDD5KRzPsGMa62sWxGZw+Ui43u6x4ddoQ==
 
 use@^3.1.0:
   version "3.1.1"

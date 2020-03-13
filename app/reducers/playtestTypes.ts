@@ -79,6 +79,7 @@ export enum ESelectedState {
 
 export type PlaytestSelectedState = PlaytestBaseState & {
   state: ESelectedState;
+  args: string[];
 };
 
 export type DPlaytestsProviderState = {

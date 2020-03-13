@@ -2,7 +2,7 @@ import * as storage from 'redux-storage';
 import { combineReducers } from 'redux';
 import { connectRouter } from 'connected-react-router';
 import { History } from 'history';
-import { createPlaytestReducer, ftpConfig, localSettings, setRandomSeed } from './playtestReducers';
+import { createPlaytestReducer, ftpConfig, localSettings, localDriveInfo, setRandomSeed } from './playtestReducers';
 
 export default function createRootReducer(history: History) {
   return storage.reducer(
@@ -11,6 +11,7 @@ export default function createRootReducer(history: History) {
       playtestsProvider: createPlaytestReducer(),
       ftpConfig,
       localSettings,
+      localDriveInfo,
       randomSeed: setRandomSeed
     })
   );
